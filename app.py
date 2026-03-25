@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, send_file
 import fitz  # PyMuPDF
-from PIL import Image
 import io
 
 app = Flask(__name__)
 app.config["DEBUG"] = True  # 🔥 включаем отладку
+
+MAX_FILE_SIZE_MB = 10
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -18,30 +19,26 @@ def index():
             quality = int(request.form.get("quality", 50))
 
             data = file.read()
-
             if len(data) == 0:
                 return "Пустой файл"
-
-            if len(data) > 10 * 1024 * 1024:
-                return "Файл слишком большой (макс 10MB)"
+            if len(data) > MAX_FILE_SIZE_MB * 1024 * 1024:
+                return f"Файл слишком большой (макс {MAX_FILE_SIZE_MB} MB)"
 
             pdf = fitz.open(stream=data, filetype="pdf")
+            new_pdf = fitz.open()
             new_pdf_stream = io.BytesIO()
 
-            new_pdf = fitz.open()
-
+            # Сжатие каждой страницы
             for page in pdf:
-    pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
+                # Рендер страницы в изображение с уменьшением размера
+                pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
 
-    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-
-    img_bytes = io.BytesIO()
-    img.save(img_bytes, format="JPEG", quality=quality)
-    img_bytes.seek(0)
-
-    rect = fitz.Rect(0, 0, pix.width, pix.height)
-    page_new = new_pdf.new_page(width=pix.width, height=pix.height)
-    page_new.insert_image(rect, stream=img_bytes.getvalue())
+                # Создаем новую страницу в PDF
+                page_new = new_pdf.new_page(width=pix.width, height=pix.height)
+                page_new.insert_image(
+                    fitz.Rect(0, 0, pix.width, pix.height),
+                    stream=pix.tobytes("ppm")  # напрямую без Pillow
+                )
 
             new_pdf.save(new_pdf_stream)
             new_pdf_stream.seek(0)
@@ -56,8 +53,9 @@ def index():
         return render_template("index.html")
 
     except Exception as e:
-        return f"ОШИБКА: {str(e)}"  # 🔥 теперь увидим реальную причину
-
+        # 🔥 Показываем точную ошибку прямо в браузере
+        import traceback
+        return f"<h2>ОШИБКА:</h2><pre>{traceback.format_exc()}</pre>"
 
 if __name__ == "__main__":
     app.run(debug=True)
