@@ -1,58 +1,48 @@
-import os
-from flask import Flask, request, render_template, send_file, redirect, url_for
+from flask import Flask, render_template, request, send_file
 import fitz  # PyMuPDF
 from PIL import Image
-from io import BytesIO
-import uuid
+import io
 
 app = Flask(__name__)
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    download_links = []
-
     if request.method == "POST":
-        files = request.files.getlist("pdf_files")
-        quality = int(request.form.get("quality", 75))
+        file = request.files.get("pdf_file")
+        quality = int(request.form.get("quality", 50))
 
-        for file in files:
-            if file and file.filename.endswith(".pdf"):
-                unique_name = f"{uuid.uuid4().hex}_{file.filename}"
-                input_path = os.path.join(UPLOAD_FOLDER, unique_name)
-                output_path = os.path.join(UPLOAD_FOLDER, "compressed_" + unique_name)
-                file.save(input_path)
+        if not file:
+            return "Нет файла PDF"
 
-                compress_pdf(input_path, output_path, quality)
-                download_links.append(url_for("download", filename=os.path.basename(output_path)))
+        pdf = fitz.open(stream=file.read(), filetype="pdf")
+        new_pdf_stream = io.BytesIO()
 
-    return render_template("index.html", download_links=download_links)
+        # Создаём новый PDF
+        new_pdf = fitz.open()
+        for page in pdf:
+            pix = page.get_pixmap()  # рендер страницы
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            
+            img_bytes = io.BytesIO()
+            img.save(img_bytes, format="JPEG", quality=quality)
+            img_bytes.seek(0)
 
-def compress_pdf(input_pdf, output_pdf, quality):
-    """Сжимает изображения внутри PDF до указанного качества"""
-    doc = fitz.open(input_pdf)
+            # Добавляем сжатое изображение как новую страницу
+            img_pdf = fitz.open("pdf", img_bytes.read())
+            new_pdf.insert_pdf(img_pdf)
 
-    for page in doc:
-        images = page.get_images(full=True)
-        for img_index, img in enumerate(images):
-            xref = img[0]
-            base_image = doc.extract_image(xref)
-            image_bytes = base_image["image"]
+        new_pdf.save(new_pdf_stream)
+        new_pdf_stream.seek(0)
 
-            image = Image.open(BytesIO(image_bytes))
-            img_buffer = BytesIO()
-            image = image.convert("RGB")
-            image.save(img_buffer, format="JPEG", quality=quality)
-            img_buffer.seek(0)
+        return send_file(
+            new_pdf_stream,
+            as_attachment=True,
+            download_name="compressed.pdf",
+            mimetype="application/pdf"
+        )
 
-            doc.update_image(xref, img_buffer.read())
-
-    doc.save(output_pdf)
-
-@app.route("/download/<filename>")
-def download(filename):
-    return send_file(os.path.join(UPLOAD_FOLDER, filename), as_attachment=True)
+    return render_template("index.html")
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
