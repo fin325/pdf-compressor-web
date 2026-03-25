@@ -31,7 +31,7 @@ def index():
             new_pdf = fitz.open()
 
             for page in pdf:
-                pix = page.get_pixmap()
+                pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
                 img_bytes = io.BytesIO()
