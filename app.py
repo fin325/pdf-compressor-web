@@ -4,45 +4,58 @@ from PIL import Image
 import io
 
 app = Flask(__name__)
+app.config["DEBUG"] = True  # 🔥 включаем отладку
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == "POST":
-        file = request.files.get("pdf_file")
-        quality = int(request.form.get("quality", 50))
+    try:
+        if request.method == "POST":
 
-        if not file:
-            return "Нет файла PDF"
+            if "pdf_file" not in request.files:
+                return "Файл не передан"
 
-        pdf = fitz.open(stream=file.read(), filetype="pdf")
-        new_pdf_stream = io.BytesIO()
+            file = request.files["pdf_file"]
+            quality = int(request.form.get("quality", 50))
 
-        # Создаём новый PDF
-        new_pdf = fitz.open()
-        for page in pdf:
-            pix = page.get_pixmap()  # рендер страницы
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            
-            img_bytes = io.BytesIO()
-            img.save(img_bytes, format="JPEG", quality=quality)
-            img_bytes.seek(0)
+            data = file.read()
 
-            # Добавляем сжатое изображение как новую страницу
-            img_pdf = fitz.open("pdf", img_bytes.read())
-            new_pdf.insert_pdf(img_pdf)
+            if len(data) == 0:
+                return "Пустой файл"
 
-        new_pdf.save(new_pdf_stream)
-        new_pdf_stream.seek(0)
+            if len(data) > 10 * 1024 * 1024:
+                return "Файл слишком большой (макс 10MB)"
 
-        return send_file(
-            new_pdf_stream,
-            as_attachment=True,
-            download_name="compressed.pdf",
-            mimetype="application/pdf"
-        )
+            pdf = fitz.open(stream=data, filetype="pdf")
+            new_pdf_stream = io.BytesIO()
 
-    return render_template("index.html")
-    
+            new_pdf = fitz.open()
+
+            for page in pdf:
+                pix = page.get_pixmap()
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+                img_bytes = io.BytesIO()
+                img.save(img_bytes, format="JPEG", quality=quality)
+                img_bytes.seek(0)
+
+                img_pdf = fitz.open("pdf", img_bytes.read())
+                new_pdf.insert_pdf(img_pdf)
+
+            new_pdf.save(new_pdf_stream)
+            new_pdf_stream.seek(0)
+
+            return send_file(
+                new_pdf_stream,
+                as_attachment=True,
+                download_name="compressed.pdf",
+                mimetype="application/pdf"
+            )
+
+        return render_template("index.html")
+
+    except Exception as e:
+        return f"ОШИБКА: {str(e)}"  # 🔥 теперь увидим реальную причину
+
 
 if __name__ == "__main__":
     app.run(debug=True)
