@@ -1,19 +1,27 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>PDF Compressor</title>
+    <title>PDF Compressor von Finevych A.</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+        input[type="file"] { margin: 10px 0; }
+        input[type="submit"] { padding: 8px 16px; }
+        .container { max-width: 500px; margin: auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        h1 { color: #2c3e50; }
+    </style>
 </head>
 <body>
-    <h1>PDF Compressor</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label>Выберите PDF файл:</label>
-        <input type="file" name="pdf_file" accept="application/pdf" required><br><br>
+    <div class="container">
+        <!-- Жёстко прописали заголовок, чтобы точно отображался -->
+        <h1>PDF Compressor von Finevych A.</h1>
 
-        <label>Качество изображений (1-100):</label>
-        <input type="number" name="quality" min="1" max="100" value="50"><br><br>
-
-        <button type="submit">Сжать PDF</button>
-    </form>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="pdf_file" accept="application/pdf" required><br>
+            <label for="quality">Qualität (1–100):</label>
+            <input type="number" name="quality" min="1" max="100" value="50"><br><br>
+            <input type="submit" value="PDF komprimieren">
+        </form>
+    </div>
 </body>
 </html>
