@@ -31,15 +31,17 @@ def index():
             new_pdf = fitz.open()
 
             for page in pdf:
-                pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
 
-                img_bytes = io.BytesIO()
-                img.save(img_bytes, format="JPEG", quality=quality)
-                img_bytes.seek(0)
+    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
-                img_pdf = fitz.open("pdf", img_bytes.read())
-                new_pdf.insert_pdf(img_pdf)
+    img_bytes = io.BytesIO()
+    img.save(img_bytes, format="JPEG", quality=quality)
+    img_bytes.seek(0)
+
+    rect = fitz.Rect(0, 0, pix.width, pix.height)
+    page_new = new_pdf.new_page(width=pix.width, height=pix.height)
+    page_new.insert_image(rect, stream=img_bytes.getvalue())
 
             new_pdf.save(new_pdf_stream)
             new_pdf_stream.seek(0)
