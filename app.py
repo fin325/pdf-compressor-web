@@ -30,14 +30,11 @@ def index():
 
             # Сжатие каждой страницы
             for page in pdf:
-                # Рендер страницы в изображение с уменьшением размера
                 pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
-
-                # Создаем новую страницу в PDF
                 page_new = new_pdf.new_page(width=pix.width, height=pix.height)
                 page_new.insert_image(
                     fitz.Rect(0, 0, pix.width, pix.height),
-                    stream=pix.tobytes("ppm")  # напрямую без Pillow
+                    stream=pix.tobytes("ppm")
                 )
 
             new_pdf.save(new_pdf_stream)
@@ -50,10 +47,10 @@ def index():
                 mimetype="application/pdf"
             )
 
-        return render_template("index.html")
+        # Передаем заголовок в HTML
+        return render_template("index.html", title="PDF Compressor von Finevych A.")
 
     except Exception as e:
-        # 🔥 Показываем точную ошибку прямо в браузере
         import traceback
         return f"<h2>ОШИБКА:</h2><pre>{traceback.format_exc()}</pre>"
 
