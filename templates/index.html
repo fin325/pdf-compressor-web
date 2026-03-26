@@ -15,50 +15,58 @@
             color: #333;
         }
         .container {
-            max-width: 600px;
+            max-width: 620px;
             margin: 0 auto;
             background: white;
-            padding: 30px;
+            padding: 40px 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         input[type="file"] {
             display: none;
         }
         .custom-file-upload {
             display: inline-block;
-            padding: 18px 30px;
-            font-size: 18px;
+            padding: 18px 35px;
+            font-size: 19px;
             background-color: #0066ff;
             color: white;
             border-radius: 8px;
             cursor: pointer;
-            margin: 20px 0;
-            transition: 0.3s;
+            margin: 15px 0;
+            transition: all 0.3s;
         }
         .custom-file-upload:hover {
             background-color: #0052cc;
-            transform: scale(1.05);
+            transform: scale(1.04);
+        }
+        #file-name {
+            margin: 10px 0 20px 0;
+            font-size: 16px;
+            color: #555;
+            min-height: 24px;
         }
         .quality-container {
             margin: 25px 0;
             font-size: 18px;
         }
         input[type="number"] {
-            width: 80px;
-            font-size: 22px;
-            padding: 8px;
+            width: 90px;
+            font-size: 24px;
+            padding: 8px 12px;
             text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 6px;
         }
         button {
-            padding: 14px 40px;
+            padding: 15px 45px;
             font-size: 20px;
             background-color: #00cc66;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #00b359;
@@ -66,7 +74,7 @@
         .info {
             font-size: 14px;
             color: #666;
-            margin-top: 15px;
+            margin-top: 25px;
         }
     </style>
 </head>
@@ -81,8 +89,11 @@
             </label>
             <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
             
+            <!-- Здесь будет отображаться имя выбранного файла -->
+            <div id="file-name">Noch keine Datei ausgewählt</div>
+
             <div class="quality-container">
-                <label for="quality"><strong>Qualität (%):</strong></label>
+                <label for="quality"><strong>Qualität (%):</strong></label><br><br>
                 <input type="number" id="quality" name="quality" 
                        min="10" max="100" value="50" required>
             </div>
@@ -91,8 +102,21 @@
         </form>
 
         <div class="info">
-            Je niedriger der Prozentsatz, desto kleiner wird die Datei (aber auch die Qualität sinkt).
+            Je niedriger der Prozentsatz, desto kleiner wird die PDF-Datei.<br>
+            (Aber die Qualität nimmt ab)
         </div>
     </div>
+
+    <script>
+        // Показываем имя выбранного файла
+        document.getElementById('pdf_file').addEventListener('change', function(e) {
+            const fileNameDiv = document.getElementById('file-name');
+            if (e.target.files.length > 0) {
+                fileNameDiv.textContent = "Ausgewählte Datei: " + e.target.files[0].name;
+            } else {
+                fileNameDiv.textContent = "Noch keine Datei ausgewählt";
+            }
+        });
+    </script>
 </body>
 </html>
