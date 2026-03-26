@@ -13,45 +13,47 @@ def index():
                 return "Keine Datei ausgewählt"
 
             file = request.files["pdf_file"]
-            quality = int(request.form.get("quality", 60))   # 10–100
+            quality = int(request.form.get("quality", 60))   # рекомендуемое значение по умолчанию 60
 
-            # Читаем исходный PDF
             data = file.read()
             doc = fitz.open(stream=data, filetype="pdf")
             new_doc = fitz.open()
 
-            scale = quality / 100.0
+            # Мягкий масштаб + сильное JPEG-сжатие
+            scale = 0.75 + (quality / 400.0)   # от ~0.775 при 10% до ~1.0 при 100%
 
             for page in doc:
-                # Создаём изображение страницы с уменьшенным разрешением
+                # Рендерим страницу
                 pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
 
                 # Создаём новую страницу
                 new_page = new_doc.new_page(width=pix.width, height=pix.height)
 
-                # Вставляем как JPEG (самый важный момент для сжатия)
+                # Важно: конвертируем в JPEG байты с нужным качеством
+                img_bytes = pix.tobytes("jpeg", jpg_quality=quality)
+
                 new_page.insert_image(
-                    fitz.Rect(0, 0, pix.width, pix.height),
-                    pixmap=pix
+                    new_page.rect,
+                    stream=img_bytes
                 )
 
-            # Сохраняем с сильным сжатием
-            output_stream = io.BytesIO()
+            # Сильное сжатие при сохранении
+            output = io.BytesIO()
             new_doc.save(
-                output_stream,
-                garbage=4,          # удаляем мусор
-                deflate=True,       # сжимаем потоки
+                output,
+                garbage=4,           # максимальная очистка
+                deflate=True,
                 deflate_images=True,
                 deflate_fonts=True,
                 clean=True
             )
-            output_stream.seek(0)
+            output.seek(0)
 
             doc.close()
             new_doc.close()
 
             return send_file(
-                output_stream,
+                output,
                 as_attachment=True,
                 download_name="komprimierte_datei.pdf",
                 mimetype="application/pdf"
