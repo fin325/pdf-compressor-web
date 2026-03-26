@@ -13,36 +13,34 @@ def index():
                 return "Keine Datei ausgewählt"
 
             file = request.files["pdf_file"]
-            quality = int(request.form.get("quality", 60))   # качество от 10 до 100
+            quality = int(request.form.get("quality", 60))   # 10–100
 
-            # Читаем файл
+            # Читаем исходный PDF
             data = file.read()
             doc = fitz.open(stream=data, filetype="pdf")
             new_doc = fitz.open()
 
-            # === Основная логика сжатия ===
-            scale = quality / 100.0                     # 60% качества → scale = 0.6
+            scale = quality / 100.0
+
             for page in doc:
-                # Рендерим страницу с уменьшенным разрешением
+                # Создаём изображение страницы с уменьшенным разрешением
                 pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
 
-                # Создаём новую страницу того же размера
+                # Создаём новую страницу
                 new_page = new_doc.new_page(width=pix.width, height=pix.height)
 
-                # Вставляем как JPEG с качеством (чем ниже quality — тем сильнее сжатие)
+                # Вставляем как JPEG (самый важный момент для сжатия)
                 new_page.insert_image(
                     fitz.Rect(0, 0, pix.width, pix.height),
-                    pixmap=pix,
-                    compress="jpeg",          # важно!
-                    quality=quality           # используем значение из формы
+                    pixmap=pix
                 )
 
-            # Сохраняем с максимальным сжатием
+            # Сохраняем с сильным сжатием
             output_stream = io.BytesIO()
             new_doc.save(
                 output_stream,
-                garbage=4,           # удаляем ненужные объекты
-                deflate=True,        # сжимаем потоки
+                garbage=4,          # удаляем мусор
+                deflate=True,       # сжимаем потоки
                 deflate_images=True,
                 deflate_fonts=True,
                 clean=True
