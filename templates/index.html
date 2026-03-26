@@ -2,41 +2,97 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>PDF Compressor von Finevych A.</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} von Finevych A.</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            text-align: center;
+            margin: 40px;
+            background-color: #f8f9fa;
         }
         h1 {
-            white-space: nowrap;
-            margin-bottom: 30px;
+            color: #333;
         }
-        form {
-            width: 600px;       /* ширина формы */
-            max-width: 90%;     /* адаптивно под экран */
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        input[type="file"], input[type="number"], button {
-            padding: 10px;
-            font-size: 16px;
+        input[type="file"] {
+            display: none;
+        }
+        .custom-file-upload {
+            display: inline-block;
+            padding: 18px 30px;
+            font-size: 18px;
+            background-color: #0066ff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: 0.3s;
+        }
+        .custom-file-upload:hover {
+            background-color: #0052cc;
+            transform: scale(1.05);
+        }
+        .quality-container {
+            margin: 25px 0;
+            font-size: 18px;
+        }
+        input[type="number"] {
+            width: 80px;
+            font-size: 22px;
+            padding: 8px;
+            text-align: center;
         }
         button {
+            padding: 14px 40px;
+            font-size: 20px;
+            background-color: #00cc66;
+            color: white;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #00b359;
+        }
+        .info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-    <h1>PDF Compressor von Finevych A.</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="pdf_file" accept="application/pdf" required>
-        <input type="number" name="quality" min="1" max="100" value="50">%
-        <button type="submit">Compress</button>
-    </form>
+    <div class="container">
+        <h1>PDF Compressor von Finevych A.</h1>
+        
+        <form method="POST" enctype="multipart/form-data">
+            
+            <label for="pdf_file" class="custom-file-upload">
+                📄 Datei auswählen
+            </label>
+            <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
+            
+            <div class="quality-container">
+                <label for="quality"><strong>Qualität (%):</strong></label>
+                <input type="number" id="quality" name="quality" 
+                       min="10" max="100" value="50" required>
+            </div>
+
+            <button type="submit">Komprimieren</button>
+        </form>
+
+        <div class="info">
+            Je niedriger der Prozentsatz, desto kleiner wird die Datei (aber auch die Qualität sinkt).
+        </div>
+    </div>
 </body>
 </html>
