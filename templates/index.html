@@ -11,9 +11,6 @@
             margin: 40px;
             background-color: #f8f9fa;
         }
-        h1 {
-            color: #333;
-        }
         .container {
             max-width: 620px;
             margin: 0 auto;
@@ -22,9 +19,10 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
-        input[type="file"] {
-            display: none;
-        }
+        h1 { color: #333; }
+
+        input[type="file"] { display: none; }
+        
         .custom-file-upload {
             display: inline-block;
             padding: 18px 35px;
@@ -34,47 +32,51 @@
             border-radius: 8px;
             cursor: pointer;
             margin: 15px 0;
-            transition: all 0.3s;
         }
-        .custom-file-upload:hover {
-            background-color: #0052cc;
-            transform: scale(1.04);
-        }
+        .custom-file-upload:hover { background-color: #0052cc; }
+
         #file-name {
-            margin: 10px 0 20px 0;
+            margin: 15px 0 25px 0;
             font-size: 16px;
             color: #555;
             min-height: 24px;
         }
-        .quality-container {
-            margin: 25px 0;
+
+        .quality-buttons {
+            margin: 30px 0;
+        }
+        .quality-btn {
+            padding: 16px 28px;
+            margin: 10px;
             font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 150px;
+            font-weight: bold;
         }
-        input[type="number"] {
-            width: 90px;
-            font-size: 24px;
-            padding: 8px 12px;
-            text-align: center;
-            border: 2px solid #ddd;
-            border-radius: 6px;
+        .low    { background-color: #ff4444; color: white; }
+        .medium { background-color: #ffaa00; color: white; }
+        .high   { background-color: #00cc66; color: white; }
+
+        .quality-btn:hover {
+            filter: brightness(1.12);
+            transform: scale(1.05);
         }
-        button {
-            padding: 15px 45px;
+        .quality-btn.active {
+            border: 4px solid #333;
+            transform: scale(1.08);
+        }
+
+        button[type="submit"] {
+            padding: 15px 50px;
             font-size: 20px;
-            background-color: #00cc66;
+            background-color: #0066ff;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #00b359;
-        }
-        .info {
-            font-size: 14px;
-            color: #666;
-            margin-top: 25px;
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -89,34 +91,43 @@
             </label>
             <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
             
-            <!-- Здесь будет отображаться имя выбранного файла -->
             <div id="file-name">Noch keine Datei ausgewählt</div>
 
-            <div class="quality-container">
-                <label for="quality"><strong>Qualität (%):</strong></label><br><br>
-                <input type="number" id="quality" name="quality" 
-                       min="10" max="100" value="50" required>
+            <div class="quality-buttons">
+                <p><strong>Komprimierungsstufe:</strong></p>
+                <button type="button" class="quality-btn low"    data-value="25">Niedrig</button>
+                <button type="button" class="quality-btn medium" data-value="30">Mittel</button>
+                <button type="button" class="quality-btn high"   data-value="50">Gut</button>
             </div>
 
-            <button type="submit">Komprimieren</button>
-        </form>
+            <input type="hidden" id="quality" name="quality" value="30">
 
-        <div class="info">
-            Je niedriger der Prozentsatz, desto kleiner wird die PDF-Datei.<br>
-            (Aber die Qualität nimmt ab)
-        </div>
+            <button type="submit">PDF komprimieren</button>
+        </form>
     </div>
 
     <script>
-        // Показываем имя выбранного файла
+        const buttons = document.querySelectorAll('.quality-btn');
+        const qualityInput = document.getElementById('quality');
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                qualityInput.value = btn.dataset.value;
+            });
+        });
+
+        // Показ имени выбранного файла
         document.getElementById('pdf_file').addEventListener('change', function(e) {
             const fileNameDiv = document.getElementById('file-name');
             if (e.target.files.length > 0) {
                 fileNameDiv.textContent = "Ausgewählte Datei: " + e.target.files[0].name;
-            } else {
-                fileNameDiv.textContent = "Noch keine Datei ausgewählt";
             }
         });
+
+        // По умолчанию выбрано "Mittel"
+        document.querySelector('.quality-btn.medium').classList.add('active');
     </script>
 </body>
 </html>
