@@ -13,47 +13,43 @@ def index():
                 return "Keine Datei ausgewählt"
 
             file = request.files["pdf_file"]
-            quality = int(request.form.get("quality", 60))   # 10–100
+            
+            # Получаем качество из кнопок
+            quality_str = request.form.get("quality", "30")
+            quality = int(quality_str)
 
             data = file.read()
             doc = fitz.open(stream=data, filetype="pdf")
             new_doc = fitz.open()
 
-            # Мягкий масштаб + контроль качества JPEG
-            scale = 0.8 + (quality / 500.0)   # от ~0.82 при 10% до ~1.0 при 100%
+            scale = quality / 100.0
 
             for page in doc:
-                # Рендерим страницу
                 pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
 
-                # Создаём новую страницу
                 new_page = new_doc.new_page(width=pix.width, height=pix.height)
 
-                # Самый надёжный способ для JPEG-сжатия
-                img_bytes = pix.tobytes("jpeg")   # без jpg_quality
-
                 new_page.insert_image(
-                    new_page.rect,          # используем rect страницы
-                    stream=img_bytes
+                    fitz.Rect(0, 0, pix.width, pix.height),
+                    pixmap=pix
                 )
 
-            # Сильное сжатие PDF при сохранении
-            output = io.BytesIO()
+            output_stream = io.BytesIO()
             new_doc.save(
-                output,
-                garbage=4,           # максимальная очистка
+                output_stream,
+                garbage=4,
                 deflate=True,
                 deflate_images=True,
                 deflate_fonts=True,
                 clean=True
             )
-            output.seek(0)
+            output_stream.seek(0)
 
             doc.close()
             new_doc.close()
 
             return send_file(
-                output,
+                output_stream,
                 as_attachment=True,
                 download_name="komprimierte_datei.pdf",
                 mimetype="application/pdf"
