@@ -9,43 +9,56 @@ app.config["DEBUG"] = True
 def index():
     try:
         if request.method == "POST":
-
-            if "pdf_file" not in request.files:
-                return "Keine Datei übertragen"
-
-            file = request.files["pdf_file"]
-
-            if file.filename == '':
+            if "pdf_file" not in request.files or request.files["pdf_file"].filename == '':
                 return "Keine Datei ausgewählt"
 
-            quality = int(request.form.get("quality", 50))
+            file = request.files["pdf_file"]
+            quality = int(request.form.get("quality", 60))   # качество от 10 до 100
 
+            # Читаем файл
             data = file.read()
+            doc = fitz.open(stream=data, filetype="pdf")
+            new_doc = fitz.open()
 
-            pdf = fitz.open(stream=data, filetype="pdf")
-            new_pdf = fitz.open()
-            new_pdf_stream = io.BytesIO()
+            # === Основная логика сжатия ===
+            scale = quality / 100.0                     # 60% качества → scale = 0.6
+            for page in doc:
+                # Рендерим страницу с уменьшенным разрешением
+                pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
 
-            # Сжатие страниц
-            for page in pdf:
-                pix = page.get_pixmap(matrix=fitz.Matrix(0.5, 0.5))   # 0.5 = среднее сжатие
-                page_new = new_pdf.new_page(width=pix.width, height=pix.height)
-                page_new.insert_image(
+                # Создаём новую страницу того же размера
+                new_page = new_doc.new_page(width=pix.width, height=pix.height)
+
+                # Вставляем как JPEG с качеством (чем ниже quality — тем сильнее сжатие)
+                new_page.insert_image(
                     fitz.Rect(0, 0, pix.width, pix.height),
-                    stream=pix.tobytes("ppm")
+                    pixmap=pix,
+                    compress="jpeg",          # важно!
+                    quality=quality           # используем значение из формы
                 )
 
-            new_pdf.save(new_pdf_stream)
-            new_pdf_stream.seek(0)
+            # Сохраняем с максимальным сжатием
+            output_stream = io.BytesIO()
+            new_doc.save(
+                output_stream,
+                garbage=4,           # удаляем ненужные объекты
+                deflate=True,        # сжимаем потоки
+                deflate_images=True,
+                deflate_fonts=True,
+                clean=True
+            )
+            output_stream.seek(0)
+
+            doc.close()
+            new_doc.close()
 
             return send_file(
-                new_pdf_stream,
+                output_stream,
                 as_attachment=True,
                 download_name="komprimierte_datei.pdf",
                 mimetype="application/pdf"
             )
 
-        # GET — показ формы
         return render_template("index.html", title="PDF Compressor")
 
     except Exception as e:
