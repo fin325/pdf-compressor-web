@@ -12,7 +12,7 @@
             background-color: #f8f9fa;
         }
         .container {
-            max-width: 620px;
+            max-width: 650px;
             margin: 0 auto;
             background: white;
             padding: 40px 30px;
@@ -33,32 +33,39 @@
             cursor: pointer;
             margin: 15px 0;
         }
+        .custom-file-upload:hover { background-color: #0052cc; }
 
         #file-name {
-            margin: 15px 0 25px 0;
+            margin: 15px 0 30px 0;
             font-size: 16px;
             color: #555;
             min-height: 24px;
         }
 
         .quality-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
             margin: 30px 0;
         }
         .quality-btn {
-            padding: 16px 28px;
-            margin: 10px;
+            padding: 16px 32px;
             font-size: 18px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            width: 150px;
             font-weight: bold;
+            min-width: 140px;
         }
         .low    { background-color: #ff4444; color: white; }
         .medium { background-color: #ffaa00; color: white; }
         .high   { background-color: #00cc66; color: white; }
 
-        .quality-btn:hover { filter: brightness(1.12); }
+        .quality-btn:hover {
+            filter: brightness(1.12);
+            transform: scale(1.05);
+        }
         .quality-btn.active {
             border: 4px solid #333;
             transform: scale(1.08);
@@ -72,13 +79,13 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 30px;
+            margin-top: 20px;
         }
 
         /* Индикатор загрузки */
         .loading {
             display: none;
-            margin: 20px auto;
+            margin: 25px auto;
             padding: 15px 30px;
             background-color: #f0f0f0;
             border-radius: 8px;
@@ -87,13 +94,13 @@
         }
         .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border: 3px solid #ddd;
             border-top: 3px solid #0066ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-right: 10px;
+            margin-right: 12px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -115,7 +122,6 @@
             <div id="file-name">Noch keine Datei ausgewählt</div>
 
             <div class="quality-buttons">
-                <p><strong>Komprimierungsstufe:</strong></p>
                 <button type="button" class="quality-btn low"    data-value="25">Niedrig</button>
                 <button type="button" class="quality-btn medium" data-value="30">Mittel</button>
                 <button type="button" class="quality-btn high"   data-value="50">Gut</button>
@@ -149,7 +155,7 @@
             });
         });
 
-        // По умолчанию "Mittel"
+        // По умолчанию выбрано "Mittel"
         document.querySelector('.quality-btn.medium').classList.add('active');
 
         // Показ имени файла
@@ -160,10 +166,10 @@
             }
         });
 
-        // Обработка отправки формы
+        // Показываем индикатор загрузки при отправке
         form.addEventListener('submit', function() {
-            submitBtn.style.display = 'none';     // скрываем кнопку
-            loadingDiv.style.display = 'block';   // показываем индикатор
+            submitBtn.style.display = 'none';
+            loadingDiv.style.display = 'block';
         });
     </script>
 </body>
