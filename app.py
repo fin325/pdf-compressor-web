@@ -13,14 +13,14 @@ def index():
                 return "Keine Datei ausgewählt"
 
             file = request.files["pdf_file"]
-            quality = int(request.form.get("quality", 60))   # рекомендуемое значение по умолчанию 60
+            quality = int(request.form.get("quality", 60))   # 10–100
 
             data = file.read()
             doc = fitz.open(stream=data, filetype="pdf")
             new_doc = fitz.open()
 
-            # Мягкий масштаб + сильное JPEG-сжатие
-            scale = 0.75 + (quality / 400.0)   # от ~0.775 при 10% до ~1.0 при 100%
+            # Мягкий масштаб + контроль качества JPEG
+            scale = 0.8 + (quality / 500.0)   # от ~0.82 при 10% до ~1.0 при 100%
 
             for page in doc:
                 # Рендерим страницу
@@ -29,15 +29,15 @@ def index():
                 # Создаём новую страницу
                 new_page = new_doc.new_page(width=pix.width, height=pix.height)
 
-                # Важно: конвертируем в JPEG байты с нужным качеством
-                img_bytes = pix.tobytes("jpeg", jpg_quality=quality)
+                # Самый надёжный способ для JPEG-сжатия
+                img_bytes = pix.tobytes("jpeg")   # без jpg_quality
 
                 new_page.insert_image(
-                    new_page.rect,
+                    new_page.rect,          # используем rect страницы
                     stream=img_bytes
                 )
 
-            # Сильное сжатие при сохранении
+            # Сильное сжатие PDF при сохранении
             output = io.BytesIO()
             new_doc.save(
                 output,
