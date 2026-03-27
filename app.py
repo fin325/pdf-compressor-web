@@ -18,7 +18,8 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            type TEXT UNIQUE
+            type TEXT,
+            ip TEXT UNIQUE
         )
     """)
 
