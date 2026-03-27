@@ -17,49 +17,73 @@ def get_db_connection():
     # Создает новое соединение с Supabase
     return psycopg2.connect(DB_URL)
 
+def init_db():
+    """Создает таблицу, если она еще не создана в Supabase"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                id SERIAL PRIMARY KEY,
+                type TEXT NOT NULL,
+                ip TEXT UNIQUE NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Не удалось инициализировать БД: {e}")
+
+# Запускаем проверку таблицы при старте приложения
+init_db()
+
 def get_user_ip():
     if request.headers.get('X-Forwarded-For'):
         return request.headers.get('X-Forwarded-For').split(',')[0]
     return request.remote_addr
 
 def add_feedback(feedback_type):
-    conn = get_db_connection()
-    cur = conn.cursor()
     ip = get_user_ip()
     success = True
-
+    conn = None
     try:
-        # В Postgres используем %s вместо ?
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute(
             "INSERT INTO feedback (type, ip) VALUES (%s, %s)",
             (feedback_type, ip)
         )
         conn.commit()
+        cur.close()
     except errors.UniqueViolation:
-        # Если такой IP уже есть в базе
+        # Прямо здесь обрабатываем "уже голосовал"
         success = False
     except Exception as e:
         print(f"Database error: {e}")
         success = False
     finally:
-        cur.close()
-        conn.close()
+        if conn:
+            conn.close()
     return success
 
 def get_feedback():
-    conn = get_db_connection()
-    cur = conn.cursor()
+    conn = None
+    likes, dislikes = 0, 0
     try:
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM feedback WHERE type='like'")
         likes = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM feedback WHERE type='dislike'")
         dislikes = cur.fetchone()[0]
+        cur.close()
     except Exception as e:
         print(f"Error fetching stats: {e}")
-        likes, dislikes = 0, 0
     finally:
-        cur.close()
-        conn.close()
+        if conn:
+            conn.close()
     return {"likes": likes, "dislikes": dislikes}
 
 # ------------------- PDF -------------------
@@ -112,15 +136,14 @@ def feedback():
     action = request.form.get("action")
 
     if action in ["like", "dislike"]:
-        # Пытаемся добавить отзыв
+        # Если add_feedback вернул False, значит сработал UniqueViolation (уже голосовал)
         if not add_feedback(action):
-            # Если уже голосовал, возвращаем сообщение + текущую статистику
             return jsonify({
                 "message": "Вы уже голосовали", 
                 **get_feedback()
             })
 
-    # Если всё успешно
+    # Если всё успешно (первый голос)
     return jsonify(get_feedback())
 
 @app.route("/feedback", methods=["GET"])
