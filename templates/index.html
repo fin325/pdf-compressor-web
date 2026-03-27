@@ -82,7 +82,7 @@
             margin-top: 20px;
         }
 
-        /* Индикатор загрузки */
+        /* Загрузка */
         .loading {
             display: none;
             margin: 25px auto;
@@ -106,6 +106,32 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* 🔥 Feedback */
+        .feedback {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .feedback button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .like-btn { background-color: #00cc66; color: white; }
+        .dislike-btn { background-color: #ff4444; color: white; }
+
+        #feedback-result {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+
     </style>
 </head>
 <body>
@@ -132,11 +158,21 @@
             <button type="submit" id="submitBtn">PDF komprimieren</button>
         </form>
 
-        <!-- Индикатор загрузки -->
         <div id="loading" class="loading">
             <span class="spinner"></span>
             PDF wird komprimiert... Bitte warten
         </div>
+
+        <!-- 🔥 Feedback -->
+        <div class="feedback">
+            <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
+
+            <button class="like-btn" onclick="sendFeedback('like')">👍 Ja</button>
+            <button class="dislike-btn" onclick="sendFeedback('dislike')">👎 Nein</button>
+
+            <div id="feedback-result"></div>
+        </div>
+
     </div>
 
     <script>
@@ -146,7 +182,7 @@
         const buttons = document.querySelectorAll('.quality-btn');
         const qualityInput = document.getElementById('quality');
 
-        // Выбор качества
+        // Качество
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
                 buttons.forEach(b => b.classList.remove('active'));
@@ -155,10 +191,9 @@
             });
         });
 
-        // По умолчанию выбрано "Mittel"
         document.querySelector('.quality-btn.medium').classList.add('active');
 
-        // Показ имени файла
+        // Имя файла
         document.getElementById('pdf_file').addEventListener('change', function(e) {
             const fileNameDiv = document.getElementById('file-name');
             if (e.target.files.length > 0) {
@@ -166,11 +201,39 @@
             }
         });
 
-        // Показываем индикатор загрузки при отправке
+        // Загрузка
         form.addEventListener('submit', function() {
             submitBtn.style.display = 'none';
             loadingDiv.style.display = 'block';
         });
+
+        // 🔥 Feedback логика
+        function sendFeedback(action) {
+            fetch("/feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "action=" + action
+            })
+            .then(res => res.json())
+            .then(data => updateFeedback(data));
+        }
+
+        function updateFeedback(data) {
+            let total = data.likes + data.dislikes;
+            let percent = total > 0 ? Math.round((data.likes / total) * 100) : 0;
+
+            document.getElementById("feedback-result").innerText =
+                "👍 " + data.likes + " | 👎 " + data.dislikes +
+                "  (" + percent + "% zufrieden)";
+        }
+
+        // загрузка статистики
+        fetch("/feedback")
+        .then(res => res.json())
+        .then(data => updateFeedback(data));
+
     </script>
 </body>
 </html>
