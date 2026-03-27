@@ -6,7 +6,8 @@ import psycopg2
 from psycopg2 import errors
 
 app = Flask(__name__)
-app.config["DEBUG"] = True
+# На сервере лучше отключать DEBUG или полагаться на логи Render
+app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "False") == "True"
 
 # ------------------- PostgreSQL (Supabase) -------------------
 
@@ -19,6 +20,9 @@ def get_db_connection():
 
 def init_db():
     """Создает таблицу, если она еще не создана в Supabase"""
+    if not DB_URL:
+        print("DATABASE_URL не настроена. Пропускаю инициализацию БД.")
+        return
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -33,6 +37,7 @@ def init_db():
         conn.commit()
         cur.close()
         conn.close()
+        print("БД проверена/инициализирована успешно.")
     except Exception as e:
         print(f"Не удалось инициализировать БД: {e}")
 
@@ -40,6 +45,7 @@ def init_db():
 init_db()
 
 def get_user_ip():
+    # Важно для Render: берем реальный IP пользователя из заголовков прокси
     if request.headers.get('X-Forwarded-For'):
         return request.headers.get('X-Forwarded-For').split(',')[0]
     return request.remote_addr
@@ -58,7 +64,6 @@ def add_feedback(feedback_type):
         conn.commit()
         cur.close()
     except errors.UniqueViolation:
-        # Прямо здесь обрабатываем "уже голосовал"
         success = False
     except Exception as e:
         print(f"Database error: {e}")
@@ -72,13 +77,14 @@ def get_feedback():
     conn = None
     likes, dislikes = 0, 0
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) FROM feedback WHERE type='like'")
-        likes = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM feedback WHERE type='dislike'")
-        dislikes = cur.fetchone()[0]
-        cur.close()
+        if DB_URL:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM feedback WHERE type='like'")
+            likes = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM feedback WHERE type='dislike'")
+            dislikes = cur.fetchone()[0]
+            cur.close()
     except Exception as e:
         print(f"Error fetching stats: {e}")
     finally:
@@ -134,23 +140,22 @@ def index():
 @app.route("/feedback", methods=["POST"])
 def feedback():
     action = request.form.get("action")
-
     if action in ["like", "dislike"]:
-        # Если add_feedback вернул False, значит сработал UniqueViolation (уже голосовал)
         if not add_feedback(action):
             return jsonify({
                 "message": "Вы уже голосовали", 
                 **get_feedback()
             })
-
-    # Если всё успешно (первый голос)
     return jsonify(get_feedback())
 
 @app.route("/feedback", methods=["GET"])
 def feedback_stats():
     return jsonify(get_feedback())
 
-# ------------------- Run -------------------
+# ------------------- Run (Исправлено для Render) -------------------
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Читаем порт, который дает Render. Если локально — используем 5000.
+    port = int(os.environ.get("PORT", 5000))
+    # host="0.0.0.0" обязателен для работы в облаке!
+    app.run(host="0.0.0.0", port=port)
