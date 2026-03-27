@@ -1,9 +1,60 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import fitz  # PyMuPDF
 import io
+import sqlite3
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
+
+# ------------------- SQLite -------------------
+
+DB_FILE = "feedback.db"
+
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def add_feedback(feedback_type):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("INSERT INTO feedback (type) VALUES (?)", (feedback_type,))
+
+    conn.commit()
+    conn.close()
+
+
+def get_feedback():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM feedback WHERE type='like'")
+    likes = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM feedback WHERE type='dislike'")
+    dislikes = cursor.fetchone()[0]
+
+    conn.close()
+
+    return {"likes": likes, "dislikes": dislikes}
+
+
+# 👉 создаём базу при запуске
+init_db()
+
+# ------------------- PDF -------------------
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -13,8 +64,7 @@ def index():
                 return "Keine Datei ausgewählt"
 
             file = request.files["pdf_file"]
-            
-            # Получаем качество из кнопок
+
             quality_str = request.form.get("quality", "30")
             quality = int(quality_str)
 
@@ -61,6 +111,25 @@ def index():
         import traceback
         return f"<h2>FEHLER:</h2><pre>{traceback.format_exc()}</pre>"
 
+
+# ------------------- Feedback API -------------------
+
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    action = request.form.get("action")
+
+    if action in ["like", "dislike"]:
+        add_feedback(action)
+
+    return jsonify(get_feedback())
+
+
+@app.route("/feedback", methods=["GET"])
+def feedback_stats():
+    return jsonify(get_feedback())
+
+
+# ------------------- Run -------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
