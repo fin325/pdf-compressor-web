@@ -121,7 +121,10 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            transition: opacity 0.3s;
         }
+        
+        .feedback button:active { transform: translateY(2px); }
 
         .like-btn { background-color: #00cc66; color: white; }
         .dislike-btn { background-color: #ff4444; color: white; }
@@ -130,6 +133,7 @@
             margin-top: 15px;
             font-size: 16px;
             color: #333;
+            font-weight: bold;
         }
 
     </style>
@@ -163,14 +167,13 @@
             PDF wird komprimiert... Bitte warten
         </div>
 
-        <!-- 🔥 Feedback -->
         <div class="feedback">
             <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
 
             <button class="like-btn" onclick="sendFeedback('like')">👍 Ja</button>
             <button class="dislike-btn" onclick="sendFeedback('dislike')">👎 Nein</button>
 
-            <div id="feedback-result"></div>
+            <div id="feedback-result">Lade Statistik...</div>
         </div>
 
     </div>
@@ -217,22 +220,33 @@
                 body: "action=" + action
             })
             .then(res => res.json())
-            .then(data => updateFeedback(data));
+            .then(data => {
+                // Если сервер прислал сообщение (например, "Вы уже голосовали")
+                if (data.message) {
+                    alert(data.message);
+                }
+                // В любом случае обновляем цифры статистики
+                updateFeedback(data);
+            })
+            .catch(err => console.error("Ошибка при отправке отзыва:", err));
         }
 
         function updateFeedback(data) {
-            let total = data.likes + data.dislikes;
-            let percent = total > 0 ? Math.round((data.likes / total) * 100) : 0;
+            const likes = data.likes || 0;
+            const dislikes = data.dislikes || 0;
+            let total = likes + dislikes;
+            let percent = total > 0 ? Math.round((likes / total) * 100) : 0;
 
             document.getElementById("feedback-result").innerText =
-                "👍 " + data.likes + " | 👎 " + data.dislikes +
+                "👍 " + likes + " | 👎 " + dislikes +
                 "  (" + percent + "% zufrieden)";
         }
 
-        // загрузка статистики
+        // Первичная загрузка статистики при открытии страницы
         fetch("/feedback")
         .then(res => res.json())
-        .then(data => updateFeedback(data));
+        .then(data => updateFeedback(data))
+        .catch(err => console.error("Ошибка при загрузке статистики:", err));
 
     </script>
 </body>
