@@ -26,14 +26,28 @@ def init_db():
     conn.commit()
     conn.close()
 
+def get_user_ip():
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0]
+    return request.remote_addr
+
 
 def add_feedback(feedback_type):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
 
-    cursor.execute("INSERT INTO feedback (type) VALUES (?)", (feedback_type,))
+    ip = get_user_ip()
 
-    conn.commit()
+    try:
+        cursor.execute(
+            "INSERT INTO feedback (type, ip) VALUES (?, ?)",
+            (feedback_type, ip)
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        # уже голосовал
+        pass
+
     conn.close()
 
 
