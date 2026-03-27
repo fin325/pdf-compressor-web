@@ -140,13 +140,14 @@ def index():
 @app.route("/feedback", methods=["POST"])
 def feedback():
     action = request.form.get("action")
-    if action in ["like", "dislike"]:
-        if not add_feedback(action):
-            return jsonify({
-                "message": "Вы уже голосовали", 
-                **get_feedback()
-            })
+    print(f"Получен экшен: {action}") # Это появится в логах Render
+    
+    # Временно убираем проверку на "уже голосовал"
+    add_feedback(action) 
+    
+    # Просто возвращаем статистику
     return jsonify(get_feedback())
+
 
 @app.route("/feedback", methods=["GET"])
 def feedback_stats():
