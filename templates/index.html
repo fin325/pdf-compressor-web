@@ -211,42 +211,89 @@
         });
 
         // 🔥 Feedback логика
-        function sendFeedback(action) {
-            fetch("/feedback", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body: "action=" + action
-            })
-            .then(res => res.json())
-            .then(data => {
-                // Если сервер прислал сообщение (например, "Вы уже голосовали")
-                if (data.message) {
-                    alert(data.message);
-                }
-                // В любом случае обновляем цифры статистики
-                updateFeedback(data);
-            })
-            .catch(err => console.error("Ошибка при отправке отзыва:", err));
+        // 🔥 НОВАЯ Feedback логика (с защитой)
+
+let feedbackId = localStorage.getItem("feedback_id");
+let feedbackType = localStorage.getItem("feedback_type");
+
+const likeBtn = document.querySelector(".like-btn");
+const dislikeBtn = document.querySelector(".dislike-btn");
+
+function updateButtons() {
+    likeBtn.style.opacity = feedbackType === "like" ? "1" : "0.6";
+    dislikeBtn.style.opacity = feedbackType === "dislike" ? "1" : "0.6";
+}
+
+async function sendFeedback(action) {
+    let formData = new FormData();
+
+    if (action === "remove" && feedbackId) {
+        formData.append("action", "remove");
+        formData.append("id", feedbackId);
+    } else {
+        if (feedbackId) {
+            await sendFeedback("remove");
         }
+        formData.append("action", action);
+    }
 
-        function updateFeedback(data) {
-            const likes = data.likes || 0;
-            const dislikes = data.dislikes || 0;
-            let total = likes + dislikes;
-            let percent = total > 0 ? Math.round((likes / total) * 100) : 0;
+    const res = await fetch("/feedback", {
+        method: "POST",
+        body: formData
+    });
 
-            document.getElementById("feedback-result").innerText =
-                "👍 " + likes + " | 👎 " + dislikes +
-                "  (" + percent + "% zufrieden)";
-        }
+    const data = await res.json();
 
-        // Первичная загрузка статистики при открытии страницы
-        fetch("/feedback")
-        .then(res => res.json())
-        .then(data => updateFeedback(data))
-        .catch(err => console.error("Ошибка при загрузке статистики:", err));
+    if (data.id) {
+        feedbackId = data.id;
+        feedbackType = action;
+
+        localStorage.setItem("feedback_id", feedbackId);
+        localStorage.setItem("feedback_type", feedbackType);
+    }
+
+    if (action === "remove") {
+        feedbackId = null;
+        feedbackType = null;
+
+        localStorage.removeItem("feedback_id");
+        localStorage.removeItem("feedback_type");
+    }
+
+    updateFeedback(data);
+    updateButtons();
+}
+
+likeBtn.onclick = () => {
+    if (feedbackType === "like") {
+        sendFeedback("remove");
+    } else {
+        sendFeedback("like");
+    }
+};
+
+dislikeBtn.onclick = () => {
+    if (feedbackType === "dislike") {
+        sendFeedback("remove");
+    } else {
+        sendFeedback("dislike");
+    }
+};
+
+function updateFeedback(data) {
+    document.getElementById("feedback-result").innerText =
+        "👍 " + data.likes +
+        " | 👎 " + data.dislikes +
+        "  (" + data.percent + "% zufrieden)";
+}
+
+fetch("/feedback")
+.then(res => res.json())
+.then(data => {
+    updateFeedback(data);
+    updateButtons();
+})
+.catch(err => console.error("Ошибка:", err));
 
     </script>
 </body>
