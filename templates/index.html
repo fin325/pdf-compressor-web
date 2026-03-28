@@ -212,7 +212,7 @@
         // 🔥 Feedback логика
         // 🔥 НОВАЯ Feedback логика (с защитой)
 
-let feedbackId = localStorage.getItem("feedback_id");
+<script>
 let feedbackType = localStorage.getItem("feedback_type");
 
 const likeBtn = document.querySelector(".like-btn");
@@ -224,39 +224,22 @@ function updateButtons() {
 }
 
 async function sendFeedback(action) {
-    let formData = new FormData();
-
-    if (action === "remove" && feedbackId) {
-        formData.append("action", "remove");
-        formData.append("id", feedbackId);
-    } else {
-        if (feedbackId) {
-            await sendFeedback("remove");
-        }
-        formData.append("action", action);
-    }
-
     const res = await fetch("/feedback", {
         method: "POST",
-        body: formData
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "action=" + action
     });
 
     const data = await res.json();
 
-    if (data.id) {
-        feedbackId = data.id;
-        feedbackType = action;
-
-        localStorage.setItem("feedback_id", feedbackId);
-        localStorage.setItem("feedback_type", feedbackType);
-    }
-
     if (action === "remove") {
-        feedbackId = null;
         feedbackType = null;
-
-        localStorage.removeItem("feedback_id");
         localStorage.removeItem("feedback_type");
+    } else {
+        feedbackType = action;
+        localStorage.setItem("feedback_type", action);
     }
 
     updateFeedback(data);
@@ -283,7 +266,7 @@ function updateFeedback(data) {
     document.getElementById("feedback-result").innerText =
         "👍 " + data.likes +
         " | 👎 " + data.dislikes +
-        "  (" + data.percent + "% zufrieden)";
+        " (" + data.percent + "% zufrieden)";
 }
 
 fetch("/feedback")
@@ -291,7 +274,8 @@ fetch("/feedback")
 .then(data => {
     updateFeedback(data);
     updateButtons();
-})
+});
+</script>
 .catch(err => console.error("Ошибка:", err));
 
     </script>
