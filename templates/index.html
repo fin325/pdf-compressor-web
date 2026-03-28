@@ -38,9 +38,9 @@
         <div id="file-name">Noch keine Datei ausgewählt</div>
 
         <div class="quality-buttons">
-            <button type="button" class="quality-btn low" data-value="25" data-label="Niedrig">Niedrig</button>
+            <button type="button" class="quality-btn low" data-value="50" data-label="Niedrig">Niedrig</button>
             <button type="button" class="quality-btn medium active" data-value="30" data-label="Mittel">Mittel</button>
-            <button type="button" class="quality-btn high" data-value="50" data-label="Gut">Gut</button>
+            <button type="button" class="quality-btn high" data-value="25" data-label="Gut">Gut</button>
         </div>
         <input type="hidden" id="quality" name="quality" value="30">
         <button type="submit" id="submitBtn">PDF komprimieren</button>
@@ -63,7 +63,6 @@ const loadingDiv = document.getElementById('loading');
 const qualityInput = document.getElementById('quality');
 const qualityBtns = document.querySelectorAll('.quality-btn');
 
-// Фидбек пользователя
 let userChoice = localStorage.getItem("pdf_user_choice");
 
 // Выбор качества
@@ -115,7 +114,6 @@ async function sendFeedback(action) {
     }
 }
 
-// Обновление UI фидбека
 function updateUI(data) {
     document.getElementById("feedback-result").innerText =
         "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
@@ -143,13 +141,13 @@ fetch("/feedback")
     .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
 
 // ==========================
-// Функция для примерного размера после сжатия
+// Примерный размер после сжатия
 // ==========================
 function updateEstimatedSizes(originalSize) {
     const qualities = [
-        { selector: '.low', factor: 0.25 },
-        { selector: '.medium', factor: 0.3 },
-        { selector: '.high', factor: 0.5 }
+        { selector: '.low', factor: 0.56 },    // Niedrig
+        { selector: '.medium', factor: 0.353 }, // Mittel
+        { selector: '.high', factor: 0.196 }   // Gut
     ];
 
     qualities.forEach(q => {
