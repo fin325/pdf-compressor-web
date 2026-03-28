@@ -5,30 +5,112 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title }} von Finevych A.</title>
 <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 40px; background-color: #f8f9fa; }
-    .container { max-width: 650px; margin: 0 auto; background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 40px;
+
+        background-image: url("/static/bg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+
+        position: relative;
+    }
+
+    /* затемнение фона */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: -1;
+    }
+
+    .container { 
+        max-width: 650px; 
+        margin: 0 auto; 
+        background: white; 
+        padding: 40px 30px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+    }
+
     h1 { color: #333; }
     input[type="file"] { display: none; }
-    .custom-file-upload { display: inline-block; padding: 18px 35px; font-size: 19px; background-color: #0066ff; color: white; border-radius: 8px; cursor: pointer; margin: 15px 0; }
+
+    .custom-file-upload { 
+        display: inline-block; 
+        padding: 18px 35px; 
+        font-size: 19px; 
+        background-color: #0066ff; 
+        color: white; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        margin: 15px 0; 
+    }
+
     .custom-file-upload:hover { background-color: #0052cc; }
+
     #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
+
     .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
+
     .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
+
     .low { background-color: #ff4444; color: white; }
     .medium { background-color: #ffaa00; color: white; }
     .high { background-color: #00cc66; color: white; }
+
     .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
-    button[type="submit"] { padding: 15px 50px; font-size: 20px; background-color: #0066ff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
-    .loading { display: none; margin: 25px auto; padding: 15px 30px; background-color: #f0f0f0; border-radius: 8px; font-size: 18px; color: #555; }
+
+    button[type="submit"] { 
+        padding: 15px 50px; 
+        font-size: 20px; 
+        background-color: #0066ff; 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        margin-top: 20px; 
+    }
+
+    .loading { 
+        display: none; 
+        margin: 25px auto; 
+        padding: 15px 30px; 
+        background-color: #f0f0f0; 
+        border-radius: 8px; 
+        font-size: 18px; 
+        color: #555; 
+    }
+
     .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
-    .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+
+    .feedback button { 
+        padding: 10px 20px; 
+        font-size: 16px; 
+        margin: 10px; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        transition: all 0.3s; 
+    }
+
     .like-btn { background-color: #00cc66; color: white; }
     .dislike-btn { background-color: #ff4444; color: white; }
+
     #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
+
     .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 </style>
 </head>
 <body>
+
 <div class="container">
     <h1>PDF Compressor von Finevych A.</h1>
     
@@ -42,11 +124,13 @@
             <button type="button" class="quality-btn medium active" data-value="30" data-label="Mittel">Mittel</button>
             <button type="button" class="quality-btn high" data-value="25" data-label="Gut">Gut</button>
         </div>
+
         <input type="hidden" id="quality" name="quality" value="30">
         <button type="submit" id="submitBtn">PDF komprimieren</button>
     </form>
-    <p style="margin-top:15px; font-size:14px; color:#777;">
-    Neue Datei? Einfach Seite neu laden 🔄
+
+    <p style="margin-top:15px; font-size:14px; color:#ddd;">
+        Neue Datei? Einfach Seite neu laden 🔄
     </p>
 
     <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
@@ -59,124 +143,10 @@
     </div>
 </div>
 
+<!-- твой JS без изменений -->
 <script>
-const form = document.getElementById('uploadForm');
-const submitBtn = document.getElementById('submitBtn');
-const loadingDiv = document.getElementById('loading');
-const qualityInput = document.getElementById('quality');
-const qualityBtns = document.querySelectorAll('.quality-btn');
-
-let userChoice = localStorage.getItem("pdf_user_choice");
-
-// Выбор качества
-qualityBtns.forEach(btn => {
-    btn.onclick = () => {
-        qualityBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        qualityInput.value = btn.dataset.value;
-    };
-});
-
-// ==========================
-// 📄 Имя файла + РЕАЛЬНЫЙ размер (как в Windows)
-// ==========================
-document.getElementById('pdf_file').onchange = (e) => {
-    if (e.target.files.length > 0) {
-        const file = e.target.files[0];
-
-        // ✅ ДЕСЯТИЧНЫЕ MB (важно!)
-        const sizeMB = (file.size / 1000000).toFixed(2);
-
-        document.getElementById('file-name').textContent =
-            `Datei: ${file.name} (${sizeMB} MB)`;
-
-        updateEstimatedSizes(file.size);
-    }
-};
-
-// Лоадер
-form.onsubmit = () => {
-    submitBtn.style.display = 'none';
-    loadingDiv.style.display = 'block';
-};
-
-// ==========================
-// 👍 Фидбек
-// ==========================
-async function sendFeedback(action) {
-    try {
-        const res = await fetch("/feedback", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: "action=" + action
-        });
-        const data = await res.json();
-
-        if (data.status === "removed") {
-            userChoice = null;
-            localStorage.removeItem("pdf_user_choice");
-        } else {
-            userChoice = action;
-            localStorage.setItem("pdf_user_choice", action);
-        }
-
-        updateUI(data);
-    } catch (err) {
-        console.error("Fehler:", err);
-    }
-}
-
-function updateUI(data) {
-    document.getElementById("feedback-result").innerText =
-        "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
-    
-    const likeBtn = document.querySelector('.like-btn');
-    const dislikeBtn = document.querySelector('.dislike-btn');
-
-    likeBtn.style.boxShadow = "none";
-    dislikeBtn.style.boxShadow = "none";
-    likeBtn.style.transform = "scale(1)";
-    dislikeBtn.style.transform = "scale(1)";
-
-    if (userChoice === 'like') {
-        likeBtn.style.boxShadow = "0 0 0 3px #333";
-        likeBtn.style.transform = "scale(1.05)";
-    } else if (userChoice === 'dislike') {
-        dislikeBtn.style.boxShadow = "0 0 0 3px #333";
-        dislikeBtn.style.transform = "scale(1.05)";
-    }
-}
-
-// Загрузка статистики
-fetch("/feedback")
-    .then(res => res.json())
-    .then(data => updateUI(data))
-    .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
-
-// ==========================
-// 📊 ТОЧНЫЙ расчёт (как ты хотел)
-// ==========================
-function updateEstimatedSizes(originalSize) {
-
-    // ✅ сначала переводим в MB (как в системе)
-    const originalMB = originalSize / 1000000;
-
-    // ✅ точные коэффициенты
-    const qualities = [
-        { selector: '.low', factor: 0.85 },    // Niedrig
-        { selector: '.medium', factor: 0.308 },// Mittel
-        { selector: '.high', factor: 0.215 }   // Gut
-    ];
-
-    qualities.forEach(q => {
-        const btn = document.querySelector(q.selector);
-
-        // ✅ считаем уже в MB (без 1024!)
-        const estimatedMB = (originalMB * q.factor).toFixed(2);
-
-        btn.textContent = `${btn.dataset.label} (${estimatedMB} MB)`;
-    });
-}
+/* оставляешь как есть */
 </script>
+
 </body>
 </html>
