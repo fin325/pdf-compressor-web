@@ -3,12 +3,11 @@ import fitz  # PyMuPDF
 import io
 import os
 import psycopg2
-from psycopg2 import errors
 
 app = Flask(__name__)
 app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "False") == "True"
 
-# ------------------- DATABASE (Supabase PostgreSQL) -------------------
+# ------------------- DATABASE -------------------
 
 DB_URL = os.environ.get("DATABASE_URL")
 
@@ -16,7 +15,7 @@ DB_URL = os.environ.get("DATABASE_URL")
 def get_db_connection():
     return psycopg2.connect(
         DB_URL,
-        sslmode="require"  # 🔥 важно для Supabase
+        sslmode="require"
     )
 
 
@@ -57,6 +56,7 @@ def get_user_ip():
     return request.remote_addr
 
 
+# 🔥 ОБНОВЛЕННАЯ ЛОГИКА (можно менять голос)
 def add_feedback(feedback_type):
     ip = get_user_ip()
 
@@ -64,10 +64,12 @@ def add_feedback(feedback_type):
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute(
-            "INSERT INTO feedback (type, ip) VALUES (%s, %s)",
-            (feedback_type, ip)
-        )
+        cur.execute("""
+            INSERT INTO feedback (type, ip)
+            VALUES (%s, %s)
+            ON CONFLICT (ip)
+            DO UPDATE SET type = EXCLUDED.type
+        """, (feedback_type, ip))
 
         conn.commit()
         cur.close()
@@ -75,15 +77,12 @@ def add_feedback(feedback_type):
 
         return True
 
-    except errors.UniqueViolation:
-        # уже голосовал
-        return False
-
     except Exception as e:
         print(f"❌ Ошибка записи: {e}")
         return False
 
 
+# 📊 С ПРОЦЕНТОМ
 def get_feedback():
     likes = 0
     dislikes = 0
@@ -104,9 +103,13 @@ def get_feedback():
     except Exception as e:
         print(f"❌ Ошибка чтения: {e}")
 
+    total = likes + dislikes
+    percent = int((likes / total) * 100) if total > 0 else 0
+
     return {
         "likes": likes,
-        "dislikes": dislikes
+        "dislikes": dislikes,
+        "percent": percent
     }
 
 
@@ -185,14 +188,10 @@ def feedback():
     if action not in ["like", "dislike"]:
         return jsonify({"error": "Invalid action"}), 400
 
-    success = add_feedback(action)
+    add_feedback(action)
     stats = get_feedback()
 
-    return jsonify({
-        "success": success,
-        "likes": stats["likes"],
-        "dislikes": stats["dislikes"]
-    })
+    return jsonify(stats)
 
 
 @app.route("/feedback", methods=["GET"])
