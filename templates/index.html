@@ -1,154 +1,163 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} von Finevych A.</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; background-color: #f8f9fa; }
-        .container { max-width: 650px; margin: 0 auto; background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        input[type="file"] { display: none; }
-        .custom-file-upload { display: inline-block; padding: 18px 35px; font-size: 19px; background-color: #0066ff; color: white; border-radius: 8px; cursor: pointer; margin: 15px 0; }
-        .custom-file-upload:hover { background-color: #0052cc; }
-        #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
-        .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
-        .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
-        .low { background-color: #ff4444; color: white; }
-        .medium { background-color: #ffaa00; color: white; }
-        .high { background-color: #00cc66; color: white; }
-        .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
-        button[type="submit"] { padding: 15px 50px; font-size: 20px; background-color: #0066ff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
-        .loading { display: none; margin: 25px auto; padding: 15px 30px; background-color: #f0f0f0; border-radius: 8px; font-size: 18px; color: #555; }
-        .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
-        .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
-        .like-btn { background-color: #00cc66; color: white; }
-        .dislike-btn { background-color: #ff4444; color: white; }
-        #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
-        
-        /* Стиль для заблокированных кнопок */
-        .feedback button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} von Finevych A.</title>
+<style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 40px; background-color: #f8f9fa; }
+    .container { max-width: 650px; margin: 0 auto; background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { color: #333; }
+    input[type="file"] { display: none; }
+    .custom-file-upload { display: inline-block; padding: 18px 35px; font-size: 19px; background-color: #0066ff; color: white; border-radius: 8px; cursor: pointer; margin: 15px 0; }
+    .custom-file-upload:hover { background-color: #0052cc; }
+    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
+    .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
+    .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
+    .low { background-color: #ff4444; color: white; }
+    .medium { background-color: #ffaa00; color: white; }
+    .high { background-color: #00cc66; color: white; }
+    .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
+    button[type="submit"] { padding: 15px 50px; font-size: 20px; background-color: #0066ff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+    .loading { display: none; margin: 25px auto; padding: 15px 30px; background-color: #f0f0f0; border-radius: 8px; font-size: 18px; color: #555; }
+    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+    .like-btn { background-color: #00cc66; color: white; }
+    .dislike-btn { background-color: #ff4444; color: white; }
+    #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
+    .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>PDF Compressor von Finevych A.</h1>
-        
-        <form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
-            <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
-            <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
-            <div id="file-name">Noch keine Datei ausgewählt</div>
-
-            <div class="quality-buttons">
-                <button type="button" class="quality-btn low" data-value="25">Niedrig</button>
-                <button type="button" class="quality-btn medium active" data-value="30">Mittel</button>
-                <button type="button" class="quality-btn high" data-value="50">Gut</button>
-            </div>
-            <input type="hidden" id="quality" name="quality" value="30">
-            <button type="submit" id="submitBtn">PDF komprimieren</button>
-        </form>
-
-        <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
-
-        <div class="feedback">
-            <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
-            <button class="like-btn" id="likeBtn" onclick="sendFeedback('like')">👍 Ja</button>
-            <button class="dislike-btn" id="dislikeBtn" onclick="sendFeedback('dislike')">👎 Nein</button>
-            <div id="feedback-result">Lade Statistik...</div>
-        </div>
-    </div>
-
-    <script>
-    const form = document.getElementById('uploadForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const loadingDiv = document.getElementById('loading');
-    const qualityInput = document.getElementById('quality');
-    const qualityBtns = document.querySelectorAll('.quality-btn');
+<div class="container">
+    <h1>PDF Compressor von Finevych A.</h1>
     
-    // 1. Храним текущий выбор пользователя ("like", "dislike" или null)
-    let userChoice = localStorage.getItem("pdf_user_choice");
+    <form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
+        <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
+        <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
+        <div id="file-name">Noch keine Datei ausgewählt</div>
 
-    // Выбор качества
-    qualityBtns.forEach(btn => {
-        btn.onclick = () => {
-            qualityBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            qualityInput.value = btn.dataset.value;
-        };
+        <div class="quality-buttons">
+            <button type="button" class="quality-btn low" data-value="25" data-label="Niedrig">Niedrig</button>
+            <button type="button" class="quality-btn medium active" data-value="30" data-label="Mittel">Mittel</button>
+            <button type="button" class="quality-btn high" data-value="50" data-label="Gut">Gut</button>
+        </div>
+        <input type="hidden" id="quality" name="quality" value="30">
+        <button type="submit" id="submitBtn">PDF komprimieren</button>
+    </form>
+
+    <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
+
+    <div class="feedback">
+        <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
+        <button class="like-btn" id="likeBtn" onclick="sendFeedback('like')">👍 Ja</button>
+        <button class="dislike-btn" id="dislikeBtn" onclick="sendFeedback('dislike')">👎 Nein</button>
+        <div id="feedback-result">Lade Statistik...</div>
+    </div>
+</div>
+
+<script>
+const form = document.getElementById('uploadForm');
+const submitBtn = document.getElementById('submitBtn');
+const loadingDiv = document.getElementById('loading');
+const qualityInput = document.getElementById('quality');
+const qualityBtns = document.querySelectorAll('.quality-btn');
+
+// Фидбек пользователя
+let userChoice = localStorage.getItem("pdf_user_choice");
+
+// Выбор качества
+qualityBtns.forEach(btn => {
+    btn.onclick = () => {
+        qualityBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        qualityInput.value = btn.dataset.value;
+    };
+});
+
+// Имя файла и размер
+document.getElementById('pdf_file').onchange = (e) => {
+    if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
+        updateEstimatedSizes(file.size);
+    }
+};
+
+// Лоадер
+form.onsubmit = () => {
+    submitBtn.style.display = 'none';
+    loadingDiv.style.display = 'block';
+};
+
+// Фидбек
+async function sendFeedback(action) {
+    try {
+        const res = await fetch("/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "action=" + action
+        });
+        const data = await res.json();
+
+        if (data.status === "removed") {
+            userChoice = null;
+            localStorage.removeItem("pdf_user_choice");
+        } else {
+            userChoice = action;
+            localStorage.setItem("pdf_user_choice", action);
+        }
+
+        updateUI(data);
+    } catch (err) {
+        console.error("Fehler:", err);
+    }
+}
+
+// Обновление UI фидбека
+function updateUI(data) {
+    document.getElementById("feedback-result").innerText =
+        "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
+    
+    const likeBtn = document.querySelector('.like-btn');
+    const dislikeBtn = document.querySelector('.dislike-btn');
+    likeBtn.style.boxShadow = "none";
+    dislikeBtn.style.boxShadow = "none";
+    likeBtn.style.transform = "scale(1)";
+    dislikeBtn.style.transform = "scale(1)";
+
+    if (userChoice === 'like') {
+        likeBtn.style.boxShadow = "0 0 0 3px #333";
+        likeBtn.style.transform = "scale(1.05)";
+    } else if (userChoice === 'dislike') {
+        dislikeBtn.style.boxShadow = "0 0 0 3px #333";
+        dislikeBtn.style.transform = "scale(1.05)";
+    }
+}
+
+// Загрузка статистики при открытии
+fetch("/feedback")
+    .then(res => res.json())
+    .then(data => updateUI(data))
+    .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
+
+// ==========================
+// Функция для примерного размера после сжатия
+// ==========================
+function updateEstimatedSizes(originalSize) {
+    const qualities = [
+        { selector: '.low', factor: 0.25 },
+        { selector: '.medium', factor: 0.3 },
+        { selector: '.high', factor: 0.5 }
+    ];
+
+    qualities.forEach(q => {
+        const btn = document.querySelector(q.selector);
+        const estimatedMB = (originalSize * q.factor / (1024 * 1024)).toFixed(2);
+        btn.textContent = `${btn.dataset.label} (${estimatedMB} MB)`;
     });
-
-    // Имя файла
-    document.getElementById('pdf_file').onchange = (e) => {
-        if (e.target.files.length > 0) {
-            document.getElementById('file-name').textContent = "Datei: " + e.target.files[0].name;
-        }
-    };
-
-    // Лоадер
-    form.onsubmit = () => {
-        submitBtn.style.display = 'none';
-        loadingDiv.style.display = 'block';
-    };
-
-    // 2. Обновленная логика фидбека (Переключатель)
-    async function sendFeedback(action) {
-        try {
-            const res = await fetch("/feedback", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "action=" + action
-            });
-            const data = await res.json();
-
-            // status может быть: ID (новый голос), "removed" (отмена) или "updated" (смена мнения)
-            if (data.status === "removed") {
-                userChoice = null;
-                localStorage.removeItem("pdf_user_choice");
-            } else {
-                userChoice = action;
-                localStorage.setItem("pdf_user_choice", action);
-            }
-
-            updateUI(data);
-        } catch (err) {
-            console.error("Fehler:", err);
-        }
-    }
-
-    // 3. Функция обновления интерфейса и подсветки кнопок
-    function updateUI(data) {
-        document.getElementById("feedback-result").innerText =
-            "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
-        
-        const likeBtn = document.querySelector('.like-btn');
-        const dislikeBtn = document.querySelector('.dislike-btn');
-
-        // Сбрасываем активные стили
-        likeBtn.style.boxShadow = "none";
-        dislikeBtn.style.boxShadow = "none";
-        likeBtn.style.transform = "scale(1)";
-        dislikeBtn.style.transform = "scale(1)";
-
-        // Подсвечиваем выбранную кнопку (например, темной рамкой или тенью)
-        if (userChoice === 'like') {
-            likeBtn.style.boxShadow = "0 0 0 3px #333";
-            likeBtn.style.transform = "scale(1.05)";
-        } else if (userChoice === 'dislike') {
-            dislikeBtn.style.boxShadow = "0 0 0 3px #333";
-            dislikeBtn.style.transform = "scale(1.05)";
-        }
-    }
-
-    // Загрузка статистики при открытии
-    fetch("/feedback")
-        .then(res => res.json())
-        .then(data => updateUI(data))
-        .catch(() => document.getElementById("feedback-result").innerText = "Statistik не доступна");
+}
 </script>
-
 </body>
 </html>
