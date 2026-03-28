@@ -141,13 +141,14 @@ fetch("/feedback")
     .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
 
 // ==========================
-// Примерный размер после сжатия
+// Жёсткие коэффициенты для прогнозируемого размера
 // ==========================
 function updateEstimatedSizes(originalSize) {
+    // коэффициенты сжатия из примера 10.7MB → Gut 2.3, Mittel 3.3, Niedrig 9.1
     const qualities = [
-        { selector: '.low', factor: 0.56 },    // Niedrig
-        { selector: '.medium', factor: 0.353 }, // Mittel
-        { selector: '.high', factor: 0.196 }   // Gut
+        { selector: '.low', factor: 0.85 },     // Niedrig
+        { selector: '.medium', factor: 0.308 }, // Mittel
+        { selector: '.high', factor: 0.215 }    // Gut
     ];
 
     qualities.forEach(q => {
