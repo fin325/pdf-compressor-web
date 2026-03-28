@@ -74,12 +74,19 @@ qualityBtns.forEach(btn => {
     };
 });
 
-// Имя файла и размер
+// ==========================
+// 📄 Имя файла + РЕАЛЬНЫЙ размер (как в Windows)
+// ==========================
 document.getElementById('pdf_file').onchange = (e) => {
     if (e.target.files.length > 0) {
         const file = e.target.files[0];
-        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
+
+        // ✅ ДЕСЯТИЧНЫЕ MB (важно!)
+        const sizeMB = (file.size / 1000000).toFixed(2);
+
+        document.getElementById('file-name').textContent =
+            `Datei: ${file.name} (${sizeMB} MB)`;
+
         updateEstimatedSizes(file.size);
     }
 };
@@ -90,7 +97,9 @@ form.onsubmit = () => {
     loadingDiv.style.display = 'block';
 };
 
-// Фидбек
+// ==========================
+// 👍 Фидбек
+// ==========================
 async function sendFeedback(action) {
     try {
         const res = await fetch("/feedback", {
@@ -120,6 +129,7 @@ function updateUI(data) {
     
     const likeBtn = document.querySelector('.like-btn');
     const dislikeBtn = document.querySelector('.dislike-btn');
+
     likeBtn.style.boxShadow = "none";
     dislikeBtn.style.boxShadow = "none";
     likeBtn.style.transform = "scale(1)";
@@ -134,26 +144,33 @@ function updateUI(data) {
     }
 }
 
-// Загрузка статистики при открытии
+// Загрузка статистики
 fetch("/feedback")
     .then(res => res.json())
     .then(data => updateUI(data))
     .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
 
 // ==========================
-// Жёсткие коэффициенты для прогнозируемого размера
+// 📊 ТОЧНЫЙ расчёт (как ты хотел)
 // ==========================
 function updateEstimatedSizes(originalSize) {
-    // коэффициенты сжатия из примера 10.7MB → Gut 2.3, Mittel 3.3, Niedrig 9.1
+
+    // ✅ сначала переводим в MB (как в системе)
+    const originalMB = originalSize / 1000000;
+
+    // ✅ точные коэффициенты
     const qualities = [
-        { selector: '.low', factor: 0.85 },     // Niedrig
-        { selector: '.medium', factor: 0.308 }, // Mittel
-        { selector: '.high', factor: 0.215 }    // Gut
+        { selector: '.low', factor: 0.85 },    // Niedrig
+        { selector: '.medium', factor: 0.308 },// Mittel
+        { selector: '.high', factor: 0.215 }   // Gut
     ];
 
     qualities.forEach(q => {
         const btn = document.querySelector(q.selector);
-        const estimatedMB = (originalSize * q.factor / (1024 * 1024)).toFixed(2);
+
+        // ✅ считаем уже в MB (без 1024!)
+        const estimatedMB = (originalMB * q.factor).toFixed(2);
+
         btn.textContent = `${btn.dataset.label} (${estimatedMB} MB)`;
     });
 }
