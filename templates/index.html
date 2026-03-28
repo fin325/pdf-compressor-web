@@ -21,10 +21,17 @@
         button[type="submit"] { padding: 15px 50px; font-size: 20px; background-color: #0066ff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
         .loading { display: none; margin: 25px auto; padding: 15px 30px; background-color: #f0f0f0; border-radius: 8px; font-size: 18px; color: #555; }
         .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
-        .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; }
+        .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
         .like-btn { background-color: #00cc66; color: white; }
         .dislike-btn { background-color: #ff4444; color: white; }
         #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
+        
+        /* Стиль для заблокированных кнопок */
+        .feedback button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
     </style>
 </head>
 <body>
@@ -48,9 +55,9 @@
         <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
 
         <div class="feedback">
-            <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
-            <button class="like-btn" onclick="sendFeedback('like')">👍 Ja</button>
-            <button class="dislike-btn" onclick="sendFeedback('dislike')">👎 Nein</button>
+            <p><strong>Hat dir die PDF-Komprimierung geхолfen?</strong></p>
+            <button class="like-btn" id="likeBtn" onclick="sendFeedback('like')">👍 Ja</button>
+            <button class="dislike-btn" id="dislikeBtn" onclick="sendFeedback('dislike')">👎 Nein</button>
             <div id="feedback-result">Lade Statistik...</div>
         </div>
     </div>
@@ -61,6 +68,9 @@
         const loadingDiv = document.getElementById('loading');
         const qualityInput = document.getElementById('quality');
         const qualityBtns = document.querySelectorAll('.quality-btn');
+        
+        // Переменная состояния голосования
+        let hasVoted = localStorage.getItem("pdf_voted") === "true";
 
         // Выбор качества
         qualityBtns.forEach(btn => {
@@ -84,8 +94,16 @@
             loadingDiv.style.display = 'block';
         };
 
+        // Функция блокировки кнопок
+        function disableFeedbackButtons() {
+            document.getElementById('likeBtn').disabled = true;
+            document.getElementById('dislikeBtn').disabled = true;
+        }
+
         // Логика фидбека
         async function sendFeedback(action) {
+            if (hasVoted) return;
+
             try {
                 const res = await fetch("/feedback", {
                     method: "POST",
@@ -93,6 +111,15 @@
                     body: "action=" + action
                 });
                 const data = await res.json();
+
+                if (data.error === "Already voted") {
+                    alert("Du hast bereits abgestimmt!");
+                }
+
+                // Сохраняем факт голосования локально
+                localStorage.setItem("pdf_voted", "true");
+                hasVoted = true;
+                
                 updateUI(data);
             } catch (err) {
                 console.error("Fehler:", err);
@@ -102,6 +129,10 @@
         function updateUI(data) {
             document.getElementById("feedback-result").innerText =
                 "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
+            
+            if (hasVoted) {
+                disableFeedbackButtons();
+            }
         }
 
         // Загрузка статистики при открытии
