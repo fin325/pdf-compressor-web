@@ -20,18 +20,35 @@ def add_feedback(feedback_type, user_ip):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO feedback (type, ip) VALUES (%s, %s) RETURNING id",
-            (feedback_type, user_ip)
-        )
-        feedback_id = cur.fetchone()[0]
-        conn.commit()
-        cur.close()
-        return feedback_id
-    except errors.UniqueViolation:
-        return "already_voted" 
+
+        # 1. Проверяем, голосовал ли уже этот IP
+        cur.execute("SELECT id, type FROM feedback WHERE ip = %s", (user_ip,))
+        existing_vote = cur.fetchone()
+
+        if existing_vote:
+            vote_id, v_type = existing_vote
+            # Если тип совпадает (нажали ту же кнопку) — удаляем голос
+            if v_type == feedback_type:
+                cur.execute("DELETE FROM feedback WHERE id = %s", (vote_id,))
+                conn.commit()
+                return "removed"
+            else:
+                # Если тип другой (передумал) — обновляем запись
+                cur.execute("UPDATE feedback SET type = %s WHERE id = %s", (feedback_type, vote_id))
+                conn.commit()
+                return "updated"
+        else:
+            # 2. Если голоса еще нет — вставляем новую запись
+            cur.execute(
+                "INSERT INTO feedback (type, ip) VALUES (%s, %s) RETURNING id",
+                (feedback_type, user_ip)
+            )
+            new_id = cur.fetchone()[0]
+            conn.commit()
+            return new_id
+
     except Exception as e:
-        print(f"❌ Ошибка записи: {e}")
+        print(f"❌ Ошибка БД: {e}")
         return None
     finally:
         if conn:
@@ -73,12 +90,10 @@ def get_feedback():
 
 @app.route("/")
 def index():
-    # Теперь главная страница только отображает HTML
     return render_template("index.html", title="PDF Compressor")
 
 @app.route("/compress", methods=["POST"])
 def compress_pdf():
-    # Теперь вся логика сжатия здесь
     try:
         if "pdf_file" not in request.files or request.files["pdf_file"].filename == '':
             return "Keine Datei ausgewählt", 400
@@ -125,7 +140,6 @@ def compress_pdf():
 
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback_api():
-    # Получаем IP пользователя
     if request.headers.get('X-Forwarded-For'):
         ip = request.headers.get('X-Forwarded-For').split(',')[0]
     else:
@@ -133,22 +147,18 @@ def feedback_api():
 
     if request.method == "POST":
         action = request.form.get("action")
-        feedback_id = request.form.get("id")
-
-        if action == "remove" and feedback_id:
-            delete_feedback(feedback_id)
-            return jsonify(get_feedback())
-
+        
         if action in ["like", "dislike"]:
-            new_id = add_feedback(action, ip)
+            # Вызываем обновленную функцию
+            result_status = add_feedback(action, ip)
             stats = get_feedback()
             
-            if new_id == "already_voted":
-                return jsonify({"error": "Already voted", **stats}), 200
-            
-            return jsonify({"id": new_id, **stats})
+            # Возвращаем статус: "removed", "updated" или числовой ID
+            return jsonify({
+                "status": result_status,
+                **stats
+            })
 
-    # GET запрос возвращает статистику
     return jsonify(get_feedback())
 
 # ------------------- RUN -------------------
