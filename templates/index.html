@@ -5,49 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title }} von Finevych A.</title>
 <style>
-    /* ---------------------------
-       Фон с blur и затемнением
-    --------------------------- */
+    /* =============================
+       Фоновая картинка + blur + затемнение
+    ============================= */
     body {
         font-family: Arial, sans-serif;
         text-align: center;
         margin: 0;
+        padding: 0;
         min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        /* Основной фон */
-        background: url("static/bg.JPG") center/cover no-repeat fixed;
+        background: url("https://raw.githubusercontent.com/fin325/pdf-compressor-web/refs/heads/main/static/bg.JPG") center/cover no-repeat fixed;
         position: relative;
     }
 
-    /* Темное размытие поверх фона (glass effect) */
     body::before {
         content: "";
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        backdrop-filter: blur(20px) brightness(0.6); /* blur + затемнение */
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        backdrop-filter: blur(15px) brightness(0.6);
         z-index: -1;
     }
 
-    /* ---------------------------
-       Контейнер (форма)
-    --------------------------- */
-    .container { 
-        max-width: 650px; 
-        margin: 40px;
-        background: rgba(255,255,255,0.85); /* полупрозрачный белый */
-        padding: 40px 30px; 
-        border-radius: 12px; 
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
-        backdrop-filter: blur(10px); /* дополнительный blur на стекле */
+    /* =============================
+       Стиль "стеклянного" контейнера
+    ============================= */
+    .container {
+        max-width: 650px;
+        margin: 60px auto;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 40px 30px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        color: #fff;
     }
 
-    h1 { color: #333; }
+    h1 { color: #fff; }
+
     input[type="file"] { display: none; }
 
     .custom-file-upload { 
@@ -59,21 +55,20 @@
         border-radius: 8px; 
         cursor: pointer; 
         margin: 15px 0; 
+        transition: 0.3s;
     }
 
     .custom-file-upload:hover { background-color: #0052cc; }
 
-    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
+    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #fff; min-height: 24px; }
 
     .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
 
     .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
-
     .low { background-color: #ff4444; color: white; }
     .medium { background-color: #ffaa00; color: white; }
     .high { background-color: #00cc66; color: white; }
-
-    .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
+    .quality-btn.active { border: 4px solid #fff; transform: scale(1.08); }
 
     button[type="submit"] { 
         padding: 15px 50px; 
@@ -93,13 +88,13 @@
         display: none; 
         margin: 25px auto; 
         padding: 15px 30px; 
-        background-color: #f0f0f0; 
+        background-color: rgba(255,255,255,0.3); 
         border-radius: 8px; 
         font-size: 18px; 
-        color: #555; 
+        color: #fff; 
     }
 
-    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3); }
 
     .feedback button { 
         padding: 10px 20px; 
@@ -114,12 +109,13 @@
     .like-btn { background-color: #00cc66; color: white; }
     .dislike-btn { background-color: #ff4444; color: white; }
 
-    #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
+    #feedback-result { margin-top: 15px; font-size: 16px; color: #fff; font-weight: bold; }
 
     .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 </style>
 </head>
 <body>
+
 <div class="container">
     <h1>PDF Compressor von Finevych A.</h1>
     
@@ -138,7 +134,7 @@
         <button type="submit" id="submitBtn">PDF komprimieren</button>
     </form>
 
-    <p style="margin-top:15px; font-size:14px; color:#555;">
+    <p style="margin-top:15px; font-size:14px; color:#ddd;">
         Neue Datei? Einfach Seite neu laden 🔄
     </p>
 
@@ -153,6 +149,7 @@
 </div>
 
 <script>
+// ==== JS как у тебя было ====
 const form = document.getElementById('uploadForm');
 const submitBtn = document.getElementById('submitBtn');
 const loadingDiv = document.getElementById('loading');
@@ -175,7 +172,8 @@ document.getElementById('pdf_file').onchange = (e) => {
     if (e.target.files.length > 0) {
         const file = e.target.files[0];
         const sizeMB = (file.size / 1000000).toFixed(2);
-        document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
+        document.getElementById('file-name').textContent =
+            `Datei: ${file.name} (${sizeMB} MB)`;
         updateEstimatedSizes(file.size);
     }
 };
@@ -195,7 +193,6 @@ async function sendFeedback(action) {
             body: "action=" + action
         });
         const data = await res.json();
-
         if (data.status === "removed") {
             userChoice = null;
             localStorage.removeItem("pdf_user_choice");
@@ -203,7 +200,6 @@ async function sendFeedback(action) {
             userChoice = action;
             localStorage.setItem("pdf_user_choice", action);
         }
-
         updateUI(data);
     } catch (err) {
         console.error("Fehler:", err);
@@ -213,20 +209,17 @@ async function sendFeedback(action) {
 function updateUI(data) {
     document.getElementById("feedback-result").innerText =
         "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
-    
     const likeBtn = document.querySelector('.like-btn');
     const dislikeBtn = document.querySelector('.dislike-btn');
-
     likeBtn.style.boxShadow = "none";
     dislikeBtn.style.boxShadow = "none";
     likeBtn.style.transform = "scale(1)";
     dislikeBtn.style.transform = "scale(1)";
-
     if (userChoice === 'like') {
-        likeBtn.style.boxShadow = "0 0 0 3px #333";
+        likeBtn.style.boxShadow = "0 0 0 3px #fff";
         likeBtn.style.transform = "scale(1.05)";
     } else if (userChoice === 'dislike') {
-        dislikeBtn.style.boxShadow = "0 0 0 3px #333";
+        dislikeBtn.style.boxShadow = "0 0 0 3px #fff";
         dislikeBtn.style.transform = "scale(1.05)";
     }
 }
@@ -237,7 +230,7 @@ fetch("/feedback")
     .then(data => updateUI(data))
     .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
 
-// Расчёт точного размера PDF
+// Расчёт размеров
 function updateEstimatedSizes(originalSize) {
     const originalMB = originalSize / 1000000;
     const qualities = [
@@ -252,5 +245,6 @@ function updateEstimatedSizes(originalSize) {
     });
 }
 </script>
+
 </body>
 </html>
