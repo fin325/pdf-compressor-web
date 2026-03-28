@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file, jsonify
-import fitz  # PyMuPDF
+import fitz
 import io
 import os
 import psycopg2
@@ -13,63 +13,18 @@ DB_URL = os.environ.get("DATABASE_URL")
 
 
 def get_db_connection():
-    return psycopg2.connect(
-        DB_URL,
-        sslmode="require"
-    )
+    return psycopg2.connect(DB_URL, sslmode="require")
 
 
-def init_db():
-    if not DB_URL:
-        print("❌ DATABASE_URL не задан")
-        return
-
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS feedback (
-                id SERIAL PRIMARY KEY,
-                type TEXT NOT NULL,
-                ip TEXT UNIQUE NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        print("✅ БД готова")
-
-    except Exception as e:
-        print(f"❌ Ошибка БД: {e}")
-
-
-init_db()
-
-
-def get_user_ip():
-    if request.headers.get('X-Forwarded-For'):
-        return request.headers.get('X-Forwarded-For').split(',')[0]
-    return request.remote_addr
-
-
-# 🔥 ОБНОВЛЕННАЯ ЛОГИКА (можно менять голос)
 def add_feedback(feedback_type):
-    ip = get_user_ip()
-
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("""
-            INSERT INTO feedback (type, ip)
-            VALUES (%s, %s)
-            ON CONFLICT (ip)
-            DO UPDATE SET type = EXCLUDED.type
-        """, (feedback_type, ip))
+        cur.execute(
+            "INSERT INTO feedback (type) VALUES (%s)",
+            (feedback_type,)
+        )
 
         conn.commit()
         cur.close()
@@ -82,7 +37,6 @@ def add_feedback(feedback_type):
         return False
 
 
-# 📊 С ПРОЦЕНТОМ
 def get_feedback():
     likes = 0
     dislikes = 0
