@@ -63,83 +63,92 @@
     </div>
 
     <script>
-        const form = document.getElementById('uploadForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const loadingDiv = document.getElementById('loading');
-        const qualityInput = document.getElementById('quality');
-        const qualityBtns = document.querySelectorAll('.quality-btn');
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingDiv = document.getElementById('loading');
+    const qualityInput = document.getElementById('quality');
+    const qualityBtns = document.querySelectorAll('.quality-btn');
+    
+    // 1. Храним текущий выбор пользователя ("like", "dislike" или null)
+    let userChoice = localStorage.getItem("pdf_user_choice");
+
+    // Выбор качества
+    qualityBtns.forEach(btn => {
+        btn.onclick = () => {
+            qualityBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            qualityInput.value = btn.dataset.value;
+        };
+    });
+
+    // Имя файла
+    document.getElementById('pdf_file').onchange = (e) => {
+        if (e.target.files.length > 0) {
+            document.getElementById('file-name').textContent = "Datei: " + e.target.files[0].name;
+        }
+    };
+
+    // Лоадер
+    form.onsubmit = () => {
+        submitBtn.style.display = 'none';
+        loadingDiv.style.display = 'block';
+    };
+
+    // 2. Обновленная логика фидбека (Переключатель)
+    async function sendFeedback(action) {
+        try {
+            const res = await fetch("/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "action=" + action
+            });
+            const data = await res.json();
+
+            // status может быть: ID (новый голос), "removed" (отмена) или "updated" (смена мнения)
+            if (data.status === "removed") {
+                userChoice = null;
+                localStorage.removeItem("pdf_user_choice");
+            } else {
+                userChoice = action;
+                localStorage.setItem("pdf_user_choice", action);
+            }
+
+            updateUI(data);
+        } catch (err) {
+            console.error("Fehler:", err);
+        }
+    }
+
+    // 3. Функция обновления интерфейса и подсветки кнопок
+    function updateUI(data) {
+        document.getElementById("feedback-result").innerText =
+            "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
         
-        // Переменная состояния голосования
-        let hasVoted = localStorage.getItem("pdf_voted") === "true";
+        const likeBtn = document.querySelector('.like-btn');
+        const dislikeBtn = document.querySelector('.dislike-btn');
 
-        // Выбор качества
-        qualityBtns.forEach(btn => {
-            btn.onclick = () => {
-                qualityBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                qualityInput.value = btn.dataset.value;
-            };
-        });
+        // Сбрасываем активные стили
+        likeBtn.style.boxShadow = "none";
+        dislikeBtn.style.boxShadow = "none";
+        likeBtn.style.transform = "scale(1)";
+        dislikeBtn.style.transform = "scale(1)";
 
-        // Имя файла
-        document.getElementById('pdf_file').onchange = (e) => {
-            if (e.target.files.length > 0) {
-                document.getElementById('file-name').textContent = "Datei: " + e.target.files[0].name;
-            }
-        };
-
-        // Лоадер
-        form.onsubmit = () => {
-            submitBtn.style.display = 'none';
-            loadingDiv.style.display = 'block';
-        };
-
-        // Функция блокировки кнопок
-        function disableFeedbackButtons() {
-            document.getElementById('likeBtn').disabled = true;
-            document.getElementById('dislikeBtn').disabled = true;
+        // Подсвечиваем выбранную кнопку (например, темной рамкой или тенью)
+        if (userChoice === 'like') {
+            likeBtn.style.boxShadow = "0 0 0 3px #333";
+            likeBtn.style.transform = "scale(1.05)";
+        } else if (userChoice === 'dislike') {
+            dislikeBtn.style.boxShadow = "0 0 0 3px #333";
+            dislikeBtn.style.transform = "scale(1.05)";
         }
+    }
 
-        // Логика фидбека
-        async function sendFeedback(action) {
-            if (hasVoted) return;
+    // Загрузка статистики при открытии
+    fetch("/feedback")
+        .then(res => res.json())
+        .then(data => updateUI(data))
+        .catch(() => document.getElementById("feedback-result").innerText = "Statistik не доступна");
+</script>
 
-            try {
-                const res = await fetch("/feedback", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "action=" + action
-                });
-                const data = await res.json();
-
-                if (data.error === "Already voted") {
-                    alert("Du hast bereits abgestimmt!");
-                }
-
-                // Сохраняем факт голосования локально
-                localStorage.setItem("pdf_voted", "true");
-                hasVoted = true;
-                
-                updateUI(data);
-            } catch (err) {
-                console.error("Fehler:", err);
-            }
-        }
-
-        function updateUI(data) {
-            document.getElementById("feedback-result").innerText =
-                "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
-            
-            if (hasVoted) {
-                disableFeedbackButtons();
-            }
-        }
-
-        // Загрузка статистики при открытии
-        fetch("/feedback")
-            .then(res => res.json())
-            .then(data => updateUI(data))
-            .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
-    </script>
 </body>
 </html>
