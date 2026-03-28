@@ -5,29 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title }} von Finevych A.</title>
 <style>
-    /* ==== Анимация фона ==== */
-    @keyframes backgroundMove {
-        0% { background-position: center top; }
-        50% { background-position: center bottom; }
-        100% { background-position: center top; }
-    }
-
+    /* ---------------------------
+       Фон с blur и затемнением
+    --------------------------- */
     body {
         font-family: Arial, sans-serif;
         text-align: center;
         margin: 0;
         min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-        background-image: url("/static/bg.JPG");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        animation: backgroundMove 40s ease-in-out infinite;
+        /* Основной фон */
+        background: url("static/bg.JPG") center/cover no-repeat fixed;
         position: relative;
     }
 
-    /* затемнение фона */
+    /* Темное размытие поверх фона (glass effect) */
     body::before {
         content: "";
         position: fixed;
@@ -35,107 +30,96 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(20px) brightness(0.6); /* blur + затемнение */
         z-index: -1;
     }
 
-    /* ==== Контейнер стекло ==== */
-    .container {
-        max-width: 650px;
-        margin: 80px auto;
-        padding: 40px 30px;
-        border-radius: 20px;
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(15px) saturate(180%);
-        -webkit-backdrop-filter: blur(15px) saturate(180%);
-        border: 1px solid rgba(255,255,255,0.3);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-        color: #fff;
+    /* ---------------------------
+       Контейнер (форма)
+    --------------------------- */
+    .container { 
+        max-width: 650px; 
+        margin: 40px;
+        background: rgba(255,255,255,0.85); /* полупрозрачный белый */
+        padding: 40px 30px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+        backdrop-filter: blur(10px); /* дополнительный blur на стекле */
     }
 
-    h1 { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    h1 { color: #333; }
     input[type="file"] { display: none; }
 
     .custom-file-upload { 
         display: inline-block; 
         padding: 18px 35px; 
         font-size: 19px; 
-        background-color: rgba(0,102,255,0.8); 
+        background-color: #0066ff; 
         color: white; 
-        border-radius: 12px; 
+        border-radius: 8px; 
         cursor: pointer; 
         margin: 15px 0; 
-        transition: 0.3s;
     }
-    .custom-file-upload:hover { background-color: rgba(0,82,204,0.9); }
 
-    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #eee; min-height: 24px; }
+    .custom-file-upload:hover { background-color: #0052cc; }
+
+    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
 
     .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
-    .quality-btn { 
-        padding: 10px 20px; 
-        font-size: 14px; 
-        border: none; 
-        border-radius: 12px; 
-        cursor: pointer; 
-        font-weight: bold; 
-        min-width: 90px; 
-        transition: 0.3s;
-        color: white;
-    }
-    .low { background-color: #ff5555; }
-    .medium { background-color: #ffaa33; }
-    .high { background-color: #33cc77; }
-    .quality-btn.active { transform: scale(1.1); box-shadow: 0 0 0 3px rgba(255,255,255,0.5); }
+
+    .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
+
+    .low { background-color: #ff4444; color: white; }
+    .medium { background-color: #ffaa00; color: white; }
+    .high { background-color: #00cc66; color: white; }
+
+    .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
 
     button[type="submit"] { 
         padding: 15px 50px; 
         font-size: 20px; 
-        background-color: rgba(0,102,255,0.9); 
+        background-color: #0066ff; 
         color: white; 
         border: none; 
-        border-radius: 12px; 
+        border-radius: 8px; 
         cursor: pointer; 
-        margin-top: 20px;
+        margin-top: 20px; 
         transition: 0.3s;
     }
-    button[type="submit"]:hover { background-color: rgba(0,82,204,0.95); }
+
+    button[type="submit"]:hover { background-color: #0052cc; }
 
     .loading { 
         display: none; 
         margin: 25px auto; 
         padding: 15px 30px; 
-        background-color: rgba(255,255,255,0.2); 
-        border-radius: 10px; 
+        background-color: #f0f0f0; 
+        border-radius: 8px; 
         font-size: 18px; 
-        color: #fff; 
-        backdrop-filter: blur(10px);
+        color: #555; 
     }
 
-    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); }
+    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
 
     .feedback button { 
         padding: 10px 20px; 
         font-size: 16px; 
         margin: 10px; 
         border: none; 
-        border-radius: 12px; 
+        border-radius: 8px; 
         cursor: pointer; 
         transition: all 0.3s; 
     }
 
-    .like-btn { background-color: #33cc77; color: white; }
-    .dislike-btn { background-color: #ff5555; color: white; }
+    .like-btn { background-color: #00cc66; color: white; }
+    .dislike-btn { background-color: #ff4444; color: white; }
 
-    #feedback-result { margin-top: 15px; font-size: 16px; color: #fff; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+    #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
 
     .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-
-    p { color: #eee; }
 </style>
 </head>
 <body>
-
 <div class="container">
     <h1>PDF Compressor von Finevych A.</h1>
     
@@ -154,7 +138,7 @@
         <button type="submit" id="submitBtn">PDF komprimieren</button>
     </form>
 
-    <p style="margin-top:15px; font-size:14px;">
+    <p style="margin-top:15px; font-size:14px; color:#555;">
         Neue Datei? Einfach Seite neu laden 🔄
     </p>
 
@@ -169,8 +153,104 @@
 </div>
 
 <script>
-/* Твой JS оставляем без изменений */
-</script>
+const form = document.getElementById('uploadForm');
+const submitBtn = document.getElementById('submitBtn');
+const loadingDiv = document.getElementById('loading');
+const qualityInput = document.getElementById('quality');
+const qualityBtns = document.querySelectorAll('.quality-btn');
 
+let userChoice = localStorage.getItem("pdf_user_choice");
+
+// Выбор качества
+qualityBtns.forEach(btn => {
+    btn.onclick = () => {
+        qualityBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        qualityInput.value = btn.dataset.value;
+    };
+});
+
+// Имя файла + размер
+document.getElementById('pdf_file').onchange = (e) => {
+    if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const sizeMB = (file.size / 1000000).toFixed(2);
+        document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
+        updateEstimatedSizes(file.size);
+    }
+};
+
+// Лоадер
+form.onsubmit = () => {
+    submitBtn.style.display = 'none';
+    loadingDiv.style.display = 'block';
+};
+
+// Фидбек
+async function sendFeedback(action) {
+    try {
+        const res = await fetch("/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "action=" + action
+        });
+        const data = await res.json();
+
+        if (data.status === "removed") {
+            userChoice = null;
+            localStorage.removeItem("pdf_user_choice");
+        } else {
+            userChoice = action;
+            localStorage.setItem("pdf_user_choice", action);
+        }
+
+        updateUI(data);
+    } catch (err) {
+        console.error("Fehler:", err);
+    }
+}
+
+function updateUI(data) {
+    document.getElementById("feedback-result").innerText =
+        "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
+    
+    const likeBtn = document.querySelector('.like-btn');
+    const dislikeBtn = document.querySelector('.dislike-btn');
+
+    likeBtn.style.boxShadow = "none";
+    dislikeBtn.style.boxShadow = "none";
+    likeBtn.style.transform = "scale(1)";
+    dislikeBtn.style.transform = "scale(1)";
+
+    if (userChoice === 'like') {
+        likeBtn.style.boxShadow = "0 0 0 3px #333";
+        likeBtn.style.transform = "scale(1.05)";
+    } else if (userChoice === 'dislike') {
+        dislikeBtn.style.boxShadow = "0 0 0 3px #333";
+        dislikeBtn.style.transform = "scale(1.05)";
+    }
+}
+
+// Загрузка статистики
+fetch("/feedback")
+    .then(res => res.json())
+    .then(data => updateUI(data))
+    .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
+
+// Расчёт точного размера PDF
+function updateEstimatedSizes(originalSize) {
+    const originalMB = originalSize / 1000000;
+    const qualities = [
+        { selector: '.low', factor: 0.85 },
+        { selector: '.medium', factor: 0.308 },
+        { selector: '.high', factor: 0.215 }
+    ];
+    qualities.forEach(q => {
+        const btn = document.querySelector(q.selector);
+        const estimatedMB = (originalMB * q.factor).toFixed(2);
+        btn.textContent = `${btn.dataset.label} (${estimatedMB} MB)`;
+    });
+}
+</script>
 </body>
 </html>
