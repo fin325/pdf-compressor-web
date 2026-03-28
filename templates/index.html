@@ -5,278 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} von Finevych A.</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 40px;
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 650px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; background-color: #f8f9fa; }
+        .container { max-width: 650px; margin: 0 auto; background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         h1 { color: #333; }
-
         input[type="file"] { display: none; }
-        
-        .custom-file-upload {
-            display: inline-block;
-            padding: 18px 35px;
-            font-size: 19px;
-            background-color: #0066ff;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 15px 0;
-        }
+        .custom-file-upload { display: inline-block; padding: 18px 35px; font-size: 19px; background-color: #0066ff; color: white; border-radius: 8px; cursor: pointer; margin: 15px 0; }
         .custom-file-upload:hover { background-color: #0052cc; }
-
-        #file-name {
-            margin: 15px 0 30px 0;
-            font-size: 16px;
-            color: #555;
-            min-height: 24px;
-        }
-
-        .quality-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 30px 0;
-        }
-        .quality-btn {
-            padding: 8px 16px;
-            font-size: 12px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            min-width: 80px;
-        }
-        .low    { background-color: #ff4444; color: white; }
+        #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
+        .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
+        .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
+        .low { background-color: #ff4444; color: white; }
         .medium { background-color: #ffaa00; color: white; }
-        .high   { background-color: #00cc66; color: white; }
-
-        .quality-btn:hover {
-            filter: brightness(1.12);
-            transform: scale(1.05);
-        }
-        .quality-btn.active {
-            border: 4px solid #333;
-            transform: scale(1.08);
-        }
-
-        button[type="submit"] {
-            padding: 15px 50px;
-            font-size: 20px;
-            background-color: #0066ff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        /* Загрузка */
-        .loading {
-            display: none;
-            margin: 25px auto;
-            padding: 15px 30px;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            font-size: 18px;
-            color: #555;
-        }
-        .spinner {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            border: 3px solid #ddd;
-            border-top: 3px solid #0066ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 12px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 🔥 Feedback */
-        .feedback {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .feedback button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .feedback button:active { transform: translateY(2px); }
-
+        .high { background-color: #00cc66; color: white; }
+        .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
+        button[type="submit"] { padding: 15px 50px; font-size: 20px; background-color: #0066ff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+        .loading { display: none; margin: 25px auto; padding: 15px 30px; background-color: #f0f0f0; border-radius: 8px; font-size: 18px; color: #555; }
+        .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+        .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; }
         .like-btn { background-color: #00cc66; color: white; }
         .dislike-btn { background-color: #ff4444; color: white; }
-
-        #feedback-result {
-            margin-top: 15px;
-            font-size: 16px;
-            color: #333;
-            font-weight: bold;
-        }
-
+        #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>PDF Compressor von Finevych A.</h1>
         
-        <form id="uploadForm" method="POST" enctype="multipart/form-data">
-            
-            <label for="pdf_file" class="custom-file-upload">
-                📄 Datei auswählen
-            </label>
+        <form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
+            <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
             <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
-            
             <div id="file-name">Noch keine Datei ausgewählt</div>
 
             <div class="quality-buttons">
-                <button type="button" class="quality-btn low"    data-value="25">Niedrig</button>
-                <button type="button" class="quality-btn medium" data-value="30">Mittel</button>
-                <button type="button" class="quality-btn high"   data-value="50">Gut</button>
+                <button type="button" class="quality-btn low" data-value="25">Niedrig</button>
+                <button type="button" class="quality-btn medium active" data-value="30">Mittel</button>
+                <button type="button" class="quality-btn high" data-value="50">Gut</button>
             </div>
-
             <input type="hidden" id="quality" name="quality" value="30">
-
             <button type="submit" id="submitBtn">PDF komprimieren</button>
         </form>
 
-        <div id="loading" class="loading">
-            <span class="spinner"></span>
-            PDF wird komprimiert... Bitte warten
-        </div>
+        <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
 
         <div class="feedback">
             <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
-
-           <button class="like-btn">👍 Ja</button>
-           <button class="dislike-btn">👎 Nein</button>
-           <div id="feedback-result">Lade Statistik...</div>
+            <button class="like-btn" onclick="sendFeedback('like')">👍 Ja</button>
+            <button class="dislike-btn" onclick="sendFeedback('dislike')">👎 Nein</button>
+            <div id="feedback-result">Lade Statistik...</div>
         </div>
-
     </div>
 
     <script>
         const form = document.getElementById('uploadForm');
         const submitBtn = document.getElementById('submitBtn');
         const loadingDiv = document.getElementById('loading');
-        const buttons = document.querySelectorAll('.quality-btn');
         const qualityInput = document.getElementById('quality');
+        const qualityBtns = document.querySelectorAll('.quality-btn');
 
-        // Качество
-        buttons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                buttons.forEach(b => b.classList.remove('active'));
+        // Выбор качества
+        qualityBtns.forEach(btn => {
+            btn.onclick = () => {
+                qualityBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 qualityInput.value = btn.dataset.value;
-            });
+            };
         });
-
-        document.querySelector('.quality-btn.medium').classList.add('active');
 
         // Имя файла
-        document.getElementById('pdf_file').addEventListener('change', function(e) {
-            const fileNameDiv = document.getElementById('file-name');
+        document.getElementById('pdf_file').onchange = (e) => {
             if (e.target.files.length > 0) {
-                fileNameDiv.textContent = "Ausgewählte Datei: " + e.target.files[0].name;
+                document.getElementById('file-name').textContent = "Datei: " + e.target.files[0].name;
             }
-        });
+        };
 
-        // Загрузка
-        form.addEventListener('submit', function() {
+        // Лоадер
+        form.onsubmit = () => {
             submitBtn.style.display = 'none';
             loadingDiv.style.display = 'block';
-        });
+        };
 
-        // 🔥 Feedback логика
-        // 🔥 НОВАЯ Feedback логика (с защитой)
+        // Логика фидбека
+        async function sendFeedback(action) {
+            try {
+                const res = await fetch("/feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "action=" + action
+                });
+                const data = await res.json();
+                updateUI(data);
+            } catch (err) {
+                console.error("Fehler:", err);
+            }
+        }
 
-<script>
-let feedbackType = localStorage.getItem("feedback_type");
+        function updateUI(data) {
+            document.getElementById("feedback-result").innerText =
+                "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
+        }
 
-const likeBtn = document.querySelector(".like-btn");
-const dislikeBtn = document.querySelector(".dislike-btn");
-
-function updateButtons() {
-    likeBtn.style.opacity = feedbackType === "like" ? "1" : "0.6";
-    dislikeBtn.style.opacity = feedbackType === "dislike" ? "1" : "0.6";
-}
-
-async function sendFeedback(action) {
-    const res = await fetch("/feedback", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: "action=" + action
-    });
-
-    const data = await res.json();
-
-    if (action === "remove") {
-        feedbackType = null;
-        localStorage.removeItem("feedback_type");
-    } else {
-        feedbackType = action;
-        localStorage.setItem("feedback_type", action);
-    }
-
-    updateFeedback(data);
-    updateButtons();
-}
-
-likeBtn.onclick = () => {
-    if (feedbackType === "like") {
-        sendFeedback("remove");
-    } else {
-        sendFeedback("like");
-    }
-};
-
-dislikeBtn.onclick = () => {
-    if (feedbackType === "dislike") {
-        sendFeedback("remove");
-    } else {
-        sendFeedback("dislike");
-    }
-};
-
-function updateFeedback(data) {
-    document.getElementById("feedback-result").innerText =
-        "👍 " + data.likes +
-        " | 👎 " + data.dislikes +
-        " (" + data.percent + "% zufrieden)";
-}
-
-fetch("/feedback")
-.then(res => res.json())
-.then(data => {
-    updateFeedback(data);
-    updateButtons();
-});
-</script>
-
+        // Загрузка статистики при открытии
+        fetch("/feedback")
+            .then(res => res.json())
+            .then(data => updateUI(data))
+            .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
     </script>
 </body>
 </html>
