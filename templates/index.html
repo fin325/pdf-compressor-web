@@ -5,68 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title }} von Finevych A.</title>
 <style>
-    /* =============================
-       Фоновая картинка с blur
-    ============================= */
+    /* ===== Фон с blur ===== */
     body {
         font-family: Arial, sans-serif;
         text-align: center;
         margin: 0;
         padding: 0;
         min-height: 100vh;
-        background: url("https://raw.githubusercontent.com/fin325/pdf-compressor-web/refs/heads/main/static/bg.JPG") center/cover no-repeat fixed;
+        background: url("https://raw.githack.com/fin325/pdf-compressor-web/main/static/bg.JPG") center/cover no-repeat fixed;
         position: relative;
-        overflow: hidden;
     }
 
-    /* Анимированный blur overlay */
+    /* стеклянный blur overlay */
     body::before {
         content: "";
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        position: absolute;
+        top:0; left:0;
+        width:100%; min-height:100%;
         backdrop-filter: blur(15px) brightness(0.6);
         z-index: -1;
-        animation: blurPulse 10s ease-in-out infinite alternate;
     }
 
-    @keyframes blurPulse {
-        0% { backdrop-filter: blur(12px) brightness(0.6); }
-        50% { backdrop-filter: blur(18px) brightness(0.65); }
-        100% { backdrop-filter: blur(15px) brightness(0.6); }
+    /* ===== Контейнер ===== */
+    .container { 
+        max-width: 650px; 
+        margin: 40px auto; 
+        background: rgba(255,255,255,0.85); /* полупрозрачное стекло */
+        padding: 40px 30px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+        backdrop-filter: blur(10px);
     }
 
-    /* Gradient overlay */
-    body::after {
-        content: "";
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.15));
-        z-index: -1;
-        pointer-events: none;
-    }
-
-    /* Стеклянный контейнер */
-    .container {
-        max-width: 650px;
-        margin: 60px auto;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 16px;
-        padding: 40px 30px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-        color: #fff;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .container:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-    }
-
-    h1 { color: #fff; }
+    h1 { color: #333; }
     input[type="file"] { display: none; }
 
     .custom-file-upload { 
@@ -78,19 +49,18 @@
         border-radius: 8px; 
         cursor: pointer; 
         margin: 15px 0; 
-        transition: 0.3s;
+        transition: background 0.3s;
     }
-
     .custom-file-upload:hover { background-color: #0052cc; }
 
-    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #fff; min-height: 24px; }
+    #file-name { margin: 15px 0 30px 0; font-size: 16px; color: #555; min-height: 24px; }
 
     .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 30px 0; }
-    .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; }
+    .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; transition: transform 0.2s; }
     .low { background-color: #ff4444; color: white; }
     .medium { background-color: #ffaa00; color: white; }
     .high { background-color: #00cc66; color: white; }
-    .quality-btn.active { border: 4px solid #fff; transform: scale(1.08); }
+    .quality-btn.active { border: 4px solid #333; transform: scale(1.08); }
 
     button[type="submit"] { 
         padding: 15px 50px; 
@@ -101,27 +71,38 @@
         border-radius: 8px; 
         cursor: pointer; 
         margin-top: 20px; 
-        transition: 0.3s;
+        transition: background 0.3s, transform 0.2s;
     }
-
-    button[type="submit"]:hover { background-color: #0052cc; }
+    button[type="submit"]:hover { background-color: #0052cc; transform: scale(1.02); }
 
     .loading { 
         display: none; 
         margin: 25px auto; 
         padding: 15px 30px; 
-        background-color: rgba(255,255,255,0.3); 
+        background-color: rgba(240,240,240,0.9); 
         border-radius: 8px; 
         font-size: 18px; 
-        color: #fff; 
+        color: #555; 
     }
 
-    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3); }
-    .feedback button { padding: 10px 20px; font-size: 16px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+    .feedback { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    .feedback button { 
+        padding: 10px 20px; 
+        font-size: 16px; 
+        margin: 10px; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        transition: all 0.3s; 
+    }
     .like-btn { background-color: #00cc66; color: white; }
     .dislike-btn { background-color: #ff4444; color: white; }
-    #feedback-result { margin-top: 15px; font-size: 16px; color: #fff; font-weight: bold; }
+
+    #feedback-result { margin-top: 15px; font-size: 16px; color: #333; font-weight: bold; }
     .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* подсказка загрузки новой PDF */
+    .reload-hint { margin-top:15px; font-size:14px; color:#777; }
 </style>
 </head>
 <body>
@@ -144,7 +125,7 @@
         <button type="submit" id="submitBtn">PDF komprimieren</button>
     </form>
 
-    <p style="margin-top:15px; font-size:14px; color:#ddd;">
+    <p class="reload-hint">
         Neue Datei? Einfach Seite neu laden 🔄
     </p>
 
@@ -159,7 +140,8 @@
 </div>
 
 <script>
-// ==== JS как было ====
+// ==========================
+// выбор качества
 const form = document.getElementById('uploadForm');
 const submitBtn = document.getElementById('submitBtn');
 const loadingDiv = document.getElementById('loading');
@@ -176,21 +158,25 @@ qualityBtns.forEach(btn => {
     };
 });
 
+// ==========================
+// имя файла + размер
 document.getElementById('pdf_file').onchange = (e) => {
     if (e.target.files.length > 0) {
         const file = e.target.files[0];
         const sizeMB = (file.size / 1000000).toFixed(2);
-        document.getElementById('file-name').textContent =
-            `Datei: ${file.name} (${sizeMB} MB)`;
+        document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
         updateEstimatedSizes(file.size);
     }
 };
 
+// лоадер
 form.onsubmit = () => {
     submitBtn.style.display = 'none';
     loadingDiv.style.display = 'block';
 };
 
+// ==========================
+// feedback
 async function sendFeedback(action) {
     try {
         const res = await fetch("/feedback", {
@@ -215,26 +201,32 @@ async function sendFeedback(action) {
 function updateUI(data) {
     document.getElementById("feedback-result").innerText =
         "👍 " + data.likes + " | 👎 " + data.dislikes + " (" + data.percent + "% zufrieden)";
+    
     const likeBtn = document.querySelector('.like-btn');
     const dislikeBtn = document.querySelector('.dislike-btn');
+
     likeBtn.style.boxShadow = "none";
     dislikeBtn.style.boxShadow = "none";
     likeBtn.style.transform = "scale(1)";
     dislikeBtn.style.transform = "scale(1)";
+
     if (userChoice === 'like') {
-        likeBtn.style.boxShadow = "0 0 0 3px #fff";
+        likeBtn.style.boxShadow = "0 0 0 3px #333";
         likeBtn.style.transform = "scale(1.05)";
     } else if (userChoice === 'dislike') {
-        dislikeBtn.style.boxShadow = "0 0 0 3px #fff";
+        dislikeBtn.style.boxShadow = "0 0 0 3px #333";
         dislikeBtn.style.transform = "scale(1.05)";
     }
 }
 
+// загрузка статистики
 fetch("/feedback")
     .then(res => res.json())
     .then(data => updateUI(data))
     .catch(() => document.getElementById("feedback-result").innerText = "Statistik nicht verfügbar");
 
+// ==========================
+// расчет размеров
 function updateEstimatedSizes(originalSize) {
     const originalMB = originalSize / 1000000;
     const qualities = [
