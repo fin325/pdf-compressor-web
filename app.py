@@ -22,8 +22,30 @@ def add_feedback(feedback_type):
         cur = conn.cursor()
 
         cur.execute(
-            "INSERT INTO feedback (type) VALUES (%s)",
+            "INSERT INTO feedback (type) VALUES (%s) RETURNING id",
             (feedback_type,)
+        )
+
+        feedback_id = cur.fetchone()[0]
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return feedback_id
+
+    except Exception as e:
+        print(f"❌ Ошибка записи: {e}")
+        return None
+
+def delete_feedback(feedback_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            "DELETE FROM feedback WHERE id = %s",
+            (feedback_id,)
         )
 
         conn.commit()
@@ -33,9 +55,8 @@ def add_feedback(feedback_type):
         return True
 
     except Exception as e:
-        print(f"❌ Ошибка записи: {e}")
+        print(f"❌ Ошибка удаления: {e}")
         return False
-
 
 def get_feedback():
     likes = 0
@@ -138,14 +159,25 @@ def index():
 @app.route("/feedback", methods=["POST"])
 def feedback():
     action = request.form.get("action")
+    feedback_id = request.form.get("id")
 
-    if action not in ["like", "dislike"]:
-        return jsonify({"error": "Invalid action"}), 400
+    # удалить голос
+    if action == "remove" and feedback_id:
+        delete_feedback(feedback_id)
+        stats = get_feedback()
+        return jsonify(stats)
 
-    add_feedback(action)
-    stats = get_feedback()
+    # поставить лайк/дизлайк
+    if action in ["like", "dislike"]:
+        new_id = add_feedback(action)
+        stats = get_feedback()
 
-    return jsonify(stats)
+        return jsonify({
+            "id": new_id,
+            **stats
+        })
+
+    return jsonify({"error": "Invalid action"}), 400
 
 
 @app.route("/feedback", methods=["GET"])
