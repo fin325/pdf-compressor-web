@@ -88,25 +88,33 @@ def feedback():
     action = request.form.get("action")
     feedback_id = request.form.get("id")
 
-    # Получаем IP пользователя (учитываем прокси Render)
+    # 1. Получаем IP пользователя (учитываем прокси Render)
     if request.headers.get('X-Forwarded-For'):
         ip = request.headers.get('X-Forwarded-For').split(',')[0]
     else:
         ip = request.remote_addr
 
-    # удалить голос
+    # 2. Удалить голос (если нужно)
     if action == "remove" and feedback_id:
         delete_feedback(feedback_id)
         stats = get_feedback()
         return jsonify(stats)
 
-    # поставить лайк/дизлайк
+    # 3. Поставить лайк/дизлайк с проверкой IP
     if action in ["like", "dislike"]:
-        new_id = add_feedback(action, ip) # <--- ИЗМЕНЕНО: передаем IP в функцию
+        # Передаем IP в функцию add_feedback
+        new_id = add_feedback(action, ip)
 
+        # Если функция вернула "already_voted", значит этот IP уже есть в базе
         if new_id == "already_voted":
-            return jsonify({"error": "Already voted", **get_feedback()}), 200 # Возвращаем статус, что голос уже был
+            stats = get_feedback()
+            return jsonify({
+                "error": "Already voted", 
+                "message": "Du hast bereits abgestimmt!",
+                **stats
+            }), 200 # Возвращаем 200, чтобы JS мог прочитать статистику
 
+        # Если всё ок, возвращаем ID новой записи и статистику
         stats = get_feedback()
         return jsonify({
             "id": new_id,
