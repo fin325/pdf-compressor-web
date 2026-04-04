@@ -92,6 +92,11 @@ def get_feedback():
 def index():
     return render_template("index.html", title="PDF Compressor")
 
+@app.route("/wakeup", methods=["GET"])
+def wakeup():
+    """Легкий эндпоинт для пробуждения сервера Render"""
+    return "OK", 200
+
 @app.route("/compress", methods=["POST"])
 def compress_pdf():
     try:
