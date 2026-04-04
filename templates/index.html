@@ -82,11 +82,28 @@
         cursor: pointer; 
         margin-top: 12px;
         transition: background 0.3s, transform 0.2s;
-        display: inline-block; /* Явно указываем display */
+        display: inline-block; 
     }
     button[type="submit"]:hover { background-color: rgba(0,82,204,0.8); transform: scale(1.02); }
 
-    /* ===== Стили для блока загрузки и полосы ===== */
+    /* Кнопка повторного скачивания */
+    .download-btn {
+        display: inline-block;
+        padding: 12px 40px;
+        font-size: 18px;
+        background-color: rgba(0,204,102,0.9); 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        text-decoration: none;
+        margin-top: 12px;
+        font-weight: bold;
+        transition: background 0.3s, transform 0.2s;
+    }
+    .download-btn:hover { background-color: rgba(0,180,90,1); transform: scale(1.05); }
+
+    /* Блок загрузки и полосы */
     .loading { 
         display: none; 
         margin: 15px auto;
@@ -113,7 +130,7 @@
     .progress-bar-inner {
         height: 100%;
         width: 40%;
-        background-color: #00cc66; /* Зеленый цвет полосы */
+        background-color: #00cc66; 
         border-radius: 4px;
         position: absolute;
         left: -40%;
@@ -125,7 +142,6 @@
         100% { left: 100%; }
     }
 
-    /* ===== Отзывы ===== */
     .feedback { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); }
     .feedback button { 
         padding: 8px 16px;
@@ -141,16 +157,15 @@
 
     #feedback-result { margin-top: 10px; font-size: 15px; color: white; font-weight: bold; }
     .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-
     .reload-hint { margin-top: 10px; font-size: 13px; color: white; }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>PDF Kompressor von Finevych A.</h1>
+    <h1>PDF Compressor von Finevych A.</h1>
 
-    <form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
+    <form id="uploadForm">
         <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
         <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
         <div id="file-name">Noch keine Datei ausgewählt</div>
@@ -164,6 +179,11 @@
         <input type="hidden" id="quality" name="quality" value="30">
         <button type="submit" id="submitBtn">PDF komprimieren</button>
     </form>
+
+    <div id="result-actions" style="display: none; margin-top: 15px;">
+        <p style="color: white; font-size: 15px; margin-bottom: 10px;">✅ Komprimierung abgeschlossen!</p>
+        <a id="download-link" href="#" class="download-btn">⬇️ Datei speichern</a>
+    </div>
 
     <p class="reload-hint">Neue Datei? Einfach Seite neu laden 🔄</p>
 
@@ -186,6 +206,8 @@
 const form = document.getElementById('uploadForm');
 const submitBtn = document.getElementById('submitBtn');
 const loadingDiv = document.getElementById('loading');
+const resultActionsDiv = document.getElementById('result-actions');
+const downloadLink = document.getElementById('download-link');
 const qualityInput = document.getElementById('quality');
 const qualityBtns = document.querySelectorAll('.quality-btn');
 const fileInput = document.getElementById('pdf_file');
@@ -201,39 +223,73 @@ qualityBtns.forEach(btn => {
     };
 });
 
-// Сброс значения инпута при клике (чтобы можно было выбрать тот же самый файл повторно)
-fileInput.onclick = (e) => {
-    e.target.value = null;
-};
+fileInput.onclick = (e) => { e.target.value = null; };
 
-// Обработка выбора файла
 fileInput.onchange = (e) => {
+    // При выборе нового файла скрываем кнопку прошлого скачивания
+    resultActionsDiv.style.display = 'none'; 
+    submitBtn.style.display = 'inline-block';
+
     if (e.target.files.length > 0) {
         const file = e.target.files[0];
         const sizeMB = (file.size / 1000000).toFixed(2);
         document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
         updateEstimatedSizes(file.size);
     } else {
-        // Если пользователь отменил выбор
         document.getElementById('file-name').textContent = "Noch keine Datei ausgewählt";
         resetEstimatedSizes();
     }
 };
 
-// Отправка формы (показываем загрузку)
-form.onsubmit = () => {
-    submitBtn.style.display = 'none';
-    loadingDiv.style.display = 'block';
-};
+// Отправка через AJAX (Fetch) вместо стандартной перезагрузки страницы
+form.onsubmit = async (e) => {
+    e.preventDefault(); // Блокируем стандартную отправку
 
-// Сброс состояния формы при возврате на страницу (Back/Forward Cache)
-window.addEventListener('pageshow', (event) => {
-    // Если страница загружена из кэша (после возврата назад)
-    if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
-        submitBtn.style.display = 'inline-block';
+    submitBtn.style.display = 'none';
+    resultActionsDiv.style.display = 'none';
+    loadingDiv.style.display = 'block';
+
+    try {
+        const formData = new FormData(form);
+        const response = await fetch('/compress', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Fehler bei der Komprimierung');
+        }
+
+        // Получаем файл в память браузера
+        const blob = await response.blob();
+        
+        // Создаем локальную ссылку на файл
+        const downloadUrl = window.URL.createObjectURL(blob);
+        
+        // Формируем имя файла
+        const originalName = fileInput.files[0].name;
+        const newName = originalName.replace(/\.pdf$/i, '_compressed.pdf');
+
+        // Настраиваем скрытую/видимую кнопку скачивания
+        downloadLink.href = downloadUrl;
+        downloadLink.download = newName;
+
+        // Останавливаем загрузку, показываем кнопки
         loadingDiv.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
+        submitBtn.textContent = 'Neu komprimieren'; // Меняем текст для ясности
+        resultActionsDiv.style.display = 'block';
+
+        // Автоматически запускаем скачивание один раз
+        downloadLink.click();
+
+    } catch (err) {
+        console.error("Upload error:", err);
+        alert("Ein Fehler ist aufgetreten. Bitte versuche es noch einmal.");
+        loadingDiv.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
     }
-});
+};
 
 async function sendFeedback(action) {
     try {
