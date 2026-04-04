@@ -10,8 +10,8 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        min-height: 100dvh;     /* Растягиваем на 100% видимой области экрана */
-        overflow: hidden;       /* нет скролла внутри iframe */
+        min-height: 100dvh;
+        overflow: hidden;
         font-family: Arial, sans-serif;
         text-align: center;
         background: url("https://raw.githack.com/fin325/pdf-compressor-web/main/static/bg.JPG") center/cover no-repeat fixed;
@@ -20,7 +20,7 @@
 
     body::before {
         content: "";
-        position: absolute;     /* absolute вместо fixed — корректно в iframe */
+        position: absolute;
         top:0; left:0;
         width:100%; height:100%;
         backdrop-filter: blur(15px) brightness(0.6);
@@ -30,22 +30,21 @@
     /* ===== Передний стеклянный контейнер ===== */
     .container {
         max-width: 650px;
-        margin: 0 auto;              /* Убран отступ сверху и снизу */
-        min-height: 100dvh;          /* Панель растягивается на всю высоту */
-        box-sizing: border-box;      /* Чтобы padding не увеличивал панель больше размера экрана */
+        margin: 0 auto;
+        min-height: 100dvh;
+        box-sizing: border-box;
         background: rgba(255,255,255,0.1);
-        padding: 20px 30px;          /* было 40px 30px — уменьшен padding */
-        border-radius: 12px;         /* Оригинальное скругление */
+        padding: 20px 30px;
+        border-radius: 12px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         backdrop-filter: blur(10px);
         color: white;
     }
 
-    /* ===== Заголовок — меньше шрифт ===== */
     h1 {
         color: white;
-        font-size: 20px;             /* было ~32px по умолчанию */
-        margin: 0 0 12px 0;          /* уменьшен отступ снизу */
+        font-size: 20px;
+        margin: 0 0 12px 0;
         font-weight: bold;
     }
 
@@ -53,20 +52,20 @@
 
     .custom-file-upload { 
         display: inline-block; 
-        padding: 14px 28px;          /* было 18px 35px */
-        font-size: 17px;             /* было 19px */
+        padding: 14px 28px;
+        font-size: 17px;
         background-color: rgba(0,102,255,0.8); 
         color: white; 
         border-radius: 8px; 
         cursor: pointer; 
-        margin: 10px 0;              /* было 15px */
+        margin: 10px 0;
         transition: background 0.3s;
     }
     .custom-file-upload:hover { background-color: rgba(0,82,204,0.8); }
 
-    #file-name { margin: 10px 0 20px 0; font-size: 16px; min-height: 20px; color: white; } /* было 15px 0 30px, min-height 24px */
+    #file-name { margin: 10px 0 20px 0; font-size: 16px; min-height: 20px; color: white; }
 
-    .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; } /* было 30px */
+    .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
     .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; transition: transform 0.2s; }
     .low { background-color: rgba(255,68,68,0.8); color: white; }
     .medium { background-color: rgba(255,170,0,0.8); color: white; }
@@ -74,33 +73,64 @@
     .quality-btn.active { border: 4px solid white; transform: scale(1.08); }
 
     button[type="submit"] { 
-        padding: 12px 40px;          /* было 15px 50px */
-        font-size: 18px;             /* было 20px */
+        padding: 12px 40px;
+        font-size: 18px;
         background-color: rgba(0,102,255,0.8); 
         color: white; 
         border: none; 
         border-radius: 8px; 
         cursor: pointer; 
-        margin-top: 12px;            /* было 20px */
+        margin-top: 12px;
         transition: background 0.3s, transform 0.2s;
+        display: inline-block; /* Явно указываем display */
     }
     button[type="submit"]:hover { background-color: rgba(0,82,204,0.8); transform: scale(1.02); }
 
+    /* ===== Стили для блока загрузки и полосы ===== */
     .loading { 
         display: none; 
-        margin: 15px auto;           /* было 25px */
-        padding: 12px 24px;          /* было 15px 30px */
-        background-color: rgba(255,255,255,0.2); 
+        margin: 15px auto;
+        padding: 15px 24px;
+        background-color: rgba(255,255,255,0.15); 
         border-radius: 8px; 
-        font-size: 16px;             /* было 18px */
+        font-size: 16px;
         color: white; 
+        width: 80%;
+        max-width: 400px;
+        box-sizing: border-box;
     }
 
-    .feedback { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); } /* было 40px, 20px */
+    .progress-bar-container {
+        width: 100%;
+        height: 6px;
+        background-color: rgba(255,255,255,0.2);
+        border-radius: 4px;
+        margin-top: 12px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar-inner {
+        height: 100%;
+        width: 40%;
+        background-color: #00cc66; /* Зеленый цвет полосы */
+        border-radius: 4px;
+        position: absolute;
+        left: -40%;
+        animation: loading-slide 1.5s infinite linear;
+    }
+
+    @keyframes loading-slide {
+        0% { left: -40%; }
+        100% { left: 100%; }
+    }
+
+    /* ===== Отзывы ===== */
+    .feedback { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); }
     .feedback button { 
-        padding: 8px 16px;           /* было 10px 20px */
-        font-size: 15px;             /* было 16px */
-        margin: 8px;                 /* было 10px */
+        padding: 8px 16px;
+        font-size: 15px;
+        margin: 8px;
         border: none; 
         border-radius: 8px; 
         cursor: pointer; 
@@ -118,7 +148,7 @@
 <body>
 
 <div class="container">
-    <h1>PDF-Kompressor von Finevych A.</h1>
+    <h1>PDF Kompressor von Finevych A.</h1>
 
     <form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
         <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
@@ -137,7 +167,12 @@
 
     <p class="reload-hint">Neue Datei? Einfach Seite neu laden 🔄</p>
 
-    <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
+    <div id="loading" class="loading">
+        PDF wird komprimiert... Bitte warten
+        <div class="progress-bar-container">
+            <div class="progress-bar-inner"></div>
+        </div>
+    </div>
 
     <div class="feedback">
         <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
@@ -153,9 +188,11 @@ const submitBtn = document.getElementById('submitBtn');
 const loadingDiv = document.getElementById('loading');
 const qualityInput = document.getElementById('quality');
 const qualityBtns = document.querySelectorAll('.quality-btn');
+const fileInput = document.getElementById('pdf_file');
 
 let userChoice = localStorage.getItem("pdf_user_choice");
 
+// Выбор качества
 qualityBtns.forEach(btn => {
     btn.onclick = () => {
         qualityBtns.forEach(b => b.classList.remove('active'));
@@ -164,19 +201,39 @@ qualityBtns.forEach(btn => {
     };
 });
 
-document.getElementById('pdf_file').onchange = (e) => {
+// Сброс значения инпута при клике (чтобы можно было выбрать тот же самый файл повторно)
+fileInput.onclick = (e) => {
+    e.target.value = null;
+};
+
+// Обработка выбора файла
+fileInput.onchange = (e) => {
     if (e.target.files.length > 0) {
         const file = e.target.files[0];
         const sizeMB = (file.size / 1000000).toFixed(2);
         document.getElementById('file-name').textContent = `Datei: ${file.name} (${sizeMB} MB)`;
         updateEstimatedSizes(file.size);
+    } else {
+        // Если пользователь отменил выбор
+        document.getElementById('file-name').textContent = "Noch keine Datei ausgewählt";
+        resetEstimatedSizes();
     }
 };
 
+// Отправка формы (показываем загрузку)
 form.onsubmit = () => {
     submitBtn.style.display = 'none';
     loadingDiv.style.display = 'block';
 };
+
+// Сброс состояния формы при возврате на страницу (Back/Forward Cache)
+window.addEventListener('pageshow', (event) => {
+    // Если страница загружена из кэша (после возврата назад)
+    if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+        submitBtn.style.display = 'inline-block';
+        loadingDiv.style.display = 'none';
+    }
+});
 
 async function sendFeedback(action) {
     try {
@@ -236,6 +293,17 @@ function updateEstimatedSizes(originalSize) {
         const btn = document.querySelector(q.selector);
         const estimatedMB = (originalMB * q.factor).toFixed(2);
         btn.textContent = `${btn.dataset.label} (${estimatedMB} MB)`;
+    });
+}
+
+function resetEstimatedSizes() {
+    const qualities = [
+        { selector: '.low', label: 'Niedrig' },
+        { selector: '.medium', label: 'Mittel' },
+        { selector: '.high', label: 'Gut' }
+    ];
+    qualities.forEach(q => {
+        document.querySelector(q.selector).textContent = q.label;
     });
 }
 </script>
