@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -10,8 +9,8 @@
     html, body {
         margin: 0;
         padding: 0;
-        height: auto;
-        min-height: unset;      /* убираем 100vh — не растягиваем на весь экран */
+        height: 100%;
+        min-height: 100dvh;     /* Растягиваем на 100% видимой области экрана */
         overflow: hidden;       /* нет скролла внутри iframe */
         font-family: Arial, sans-serif;
         text-align: center;
@@ -19,102 +18,101 @@
         position: relative;
     }
 
-```
-body::before {
-    content: "";
-    position: absolute;     /* absolute вместо fixed — корректно в iframe */
-    top:0; left:0;
-    width:100%; height:100%;
-    backdrop-filter: blur(15px) brightness(0.6);
-    z-index: -1;
-}
+    body::before {
+        content: "";
+        position: absolute;     /* absolute вместо fixed — корректно в iframe */
+        top:0; left:0;
+        width:100%; height:100%;
+        backdrop-filter: blur(15px) brightness(0.6);
+        z-index: -1;
+    }
 
-/* ===== Передний стеклянный контейнер ===== */
-.container {
-    max-width: 650px;
-    margin: 20px auto;           /* было 40px — уменьшен отступ сверху */
-    background: rgba(255,255,255,0.1);
-    padding: 20px 30px;          /* было 40px 30px — уменьшен padding */
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
-    color: white;
-}
+    /* ===== Передний стеклянный контейнер ===== */
+    .container {
+        max-width: 650px;
+        margin: 0 auto;              /* Убран отступ сверху и снизу */
+        min-height: 100dvh;          /* Панель растягивается на всю высоту */
+        box-sizing: border-box;      /* Чтобы padding не увеличивал панель больше размера экрана */
+        background: rgba(255,255,255,0.1);
+        padding: 20px 30px;          /* было 40px 30px — уменьшен padding */
+        border-radius: 12px;         /* Оригинальное скругление */
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+        color: white;
+    }
 
-/* ===== Заголовок — меньше шрифт ===== */
-h1 {
-    color: white;
-    font-size: 20px;             /* было ~32px по умолчанию */
-    margin: 0 0 12px 0;          /* уменьшен отступ снизу */
-    font-weight: bold;
-}
+    /* ===== Заголовок — меньше шрифт ===== */
+    h1 {
+        color: white;
+        font-size: 20px;             /* было ~32px по умолчанию */
+        margin: 0 0 12px 0;          /* уменьшен отступ снизу */
+        font-weight: bold;
+    }
 
-input[type="file"] { display: none; }
+    input[type="file"] { display: none; }
 
-.custom-file-upload { 
-    display: inline-block; 
-    padding: 14px 28px;          /* было 18px 35px */
-    font-size: 17px;             /* было 19px */
-    background-color: rgba(0,102,255,0.8); 
-    color: white; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    margin: 10px 0;              /* было 15px */
-    transition: background 0.3s;
-}
-.custom-file-upload:hover { background-color: rgba(0,82,204,0.8); }
+    .custom-file-upload { 
+        display: inline-block; 
+        padding: 14px 28px;          /* было 18px 35px */
+        font-size: 17px;             /* было 19px */
+        background-color: rgba(0,102,255,0.8); 
+        color: white; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        margin: 10px 0;              /* было 15px */
+        transition: background 0.3s;
+    }
+    .custom-file-upload:hover { background-color: rgba(0,82,204,0.8); }
 
-#file-name { margin: 10px 0 20px 0; font-size: 16px; min-height: 20px; color: white; } /* было 15px 0 30px, min-height 24px */
+    #file-name { margin: 10px 0 20px 0; font-size: 16px; min-height: 20px; color: white; } /* было 15px 0 30px, min-height 24px */
 
-.quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; } /* было 30px */
-.quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; transition: transform 0.2s; }
-.low { background-color: rgba(255,68,68,0.8); color: white; }
-.medium { background-color: rgba(255,170,0,0.8); color: white; }
-.high { background-color: rgba(0,204,102,0.8); color: white; }
-.quality-btn.active { border: 4px solid white; transform: scale(1.08); }
+    .quality-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 20px 0; } /* было 30px */
+    .quality-btn { padding: 8px 16px; font-size: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; min-width: 80px; transition: transform 0.2s; }
+    .low { background-color: rgba(255,68,68,0.8); color: white; }
+    .medium { background-color: rgba(255,170,0,0.8); color: white; }
+    .high { background-color: rgba(0,204,102,0.8); color: white; }
+    .quality-btn.active { border: 4px solid white; transform: scale(1.08); }
 
-button[type="submit"] { 
-    padding: 12px 40px;          /* было 15px 50px */
-    font-size: 18px;             /* было 20px */
-    background-color: rgba(0,102,255,0.8); 
-    color: white; 
-    border: none; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    margin-top: 12px;            /* было 20px */
-    transition: background 0.3s, transform 0.2s;
-}
-button[type="submit"]:hover { background-color: rgba(0,82,204,0.8); transform: scale(1.02); }
+    button[type="submit"] { 
+        padding: 12px 40px;          /* было 15px 50px */
+        font-size: 18px;             /* было 20px */
+        background-color: rgba(0,102,255,0.8); 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        margin-top: 12px;            /* было 20px */
+        transition: background 0.3s, transform 0.2s;
+    }
+    button[type="submit"]:hover { background-color: rgba(0,82,204,0.8); transform: scale(1.02); }
 
-.loading { 
-    display: none; 
-    margin: 15px auto;           /* было 25px */
-    padding: 12px 24px;          /* было 15px 30px */
-    background-color: rgba(255,255,255,0.2); 
-    border-radius: 8px; 
-    font-size: 16px;             /* было 18px */
-    color: white; 
-}
+    .loading { 
+        display: none; 
+        margin: 15px auto;           /* было 25px */
+        padding: 12px 24px;          /* было 15px 30px */
+        background-color: rgba(255,255,255,0.2); 
+        border-radius: 8px; 
+        font-size: 16px;             /* было 18px */
+        color: white; 
+    }
 
-.feedback { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); } /* было 40px, 20px */
-.feedback button { 
-    padding: 8px 16px;           /* было 10px 20px */
-    font-size: 15px;             /* было 16px */
-    margin: 8px;                 /* было 10px */
-    border: none; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    transition: all 0.3s; 
-}
-.like-btn { background-color: rgba(0,204,102,0.8); color: white; }
-.dislike-btn { background-color: rgba(255,68,68,0.8); color: white; }
+    .feedback { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); } /* было 40px, 20px */
+    .feedback button { 
+        padding: 8px 16px;           /* было 10px 20px */
+        font-size: 15px;             /* было 16px */
+        margin: 8px;                 /* было 10px */
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        transition: all 0.3s; 
+    }
+    .like-btn { background-color: rgba(0,204,102,0.8); color: white; }
+    .dislike-btn { background-color: rgba(255,68,68,0.8); color: white; }
 
-#feedback-result { margin-top: 10px; font-size: 15px; color: white; font-weight: bold; }
-.feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+    #feedback-result { margin-top: 10px; font-size: 15px; color: white; font-weight: bold; }
+    .feedback button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-.reload-hint { margin-top: 10px; font-size: 13px; color: white; }
-```
-
+    .reload-hint { margin-top: 10px; font-size: 13px; color: white; }
 </style>
 </head>
 <body>
@@ -122,34 +120,31 @@ button[type="submit"]:hover { background-color: rgba(0,82,204,0.8); transform: s
 <div class="container">
     <h1>PDF Compressor von Finevych A.</h1>
 
-```
-<form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
-    <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
-    <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
-    <div id="file-name">Noch keine Datei ausgewählt</div>
+    <form id="uploadForm" action="/compress" method="POST" enctype="multipart/form-data">
+        <label for="pdf_file" class="custom-file-upload">📄 Datei auswählen</label>
+        <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required>
+        <div id="file-name">Noch keine Datei ausgewählt</div>
 
-    <div class="quality-buttons">
-        <button type="button" class="quality-btn low" data-value="50" data-label="Niedrig">Niedrig</button>
-        <button type="button" class="quality-btn medium active" data-value="30" data-label="Mittel">Mittel</button>
-        <button type="button" class="quality-btn high" data-value="25" data-label="Gut">Gut</button>
+        <div class="quality-buttons">
+            <button type="button" class="quality-btn low" data-value="50" data-label="Niedrig">Niedrig</button>
+            <button type="button" class="quality-btn medium active" data-value="30" data-label="Mittel">Mittel</button>
+            <button type="button" class="quality-btn high" data-value="25" data-label="Gut">Gut</button>
+        </div>
+
+        <input type="hidden" id="quality" name="quality" value="30">
+        <button type="submit" id="submitBtn">PDF komprimieren</button>
+    </form>
+
+    <p class="reload-hint">Neue Datei? Einfach Seite neu laden 🔄</p>
+
+    <div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
+
+    <div class="feedback">
+        <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
+        <button class="like-btn" id="likeBtn" onclick="sendFeedback('like')">👍 Ja</button>
+        <button class="dislike-btn" id="dislikeBtn" onclick="sendFeedback('dislike')">👎 Nein</button>
+        <div id="feedback-result">Lade Statistik...</div>
     </div>
-
-    <input type="hidden" id="quality" name="quality" value="30">
-    <button type="submit" id="submitBtn">PDF komprimieren</button>
-</form>
-
-<p class="reload-hint">Neue Datei? Einfach Seite neu laden 🔄</p>
-
-<div id="loading" class="loading">PDF wird komprimiert... Bitte warten</div>
-
-<div class="feedback">
-    <p><strong>Hat dir die PDF-Komprimierung geholfen?</strong></p>
-    <button class="like-btn" id="likeBtn" onclick="sendFeedback('like')">👍 Ja</button>
-    <button class="dislike-btn" id="dislikeBtn" onclick="sendFeedback('dislike')">👎 Nein</button>
-    <div id="feedback-result">Lade Statistik...</div>
-</div>
-```
-
 </div>
 
 <script>
